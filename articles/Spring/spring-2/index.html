@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>聊透Spring-2-聊透Xml配置和注解的混用以及其原理 | Hexo</title>
+  <meta name="description" content="先看看AnnotationConfigApplicationContext上篇博客我们讲了一下ClassPathXmlApplicationContext解析Xml的总体流程，没有深入到细节。ClassPathXmlApplicationContext负责解析Xml，对应Xml的spring启动方式，我们可以这样启动spring：  ApplicationContext context &#x3D; new">
+<meta property="og:type" content="article">
+<meta property="og:title" content="聊透Spring-2-聊透Xml配置和注解的混用以及其原理">
+<meta property="og:url" content="https://www.jelliclecat.cn/articles/Spring/spring-2/index.html">
+<meta property="og:site_name" content="zhengrenjie blog">
+<meta property="og:description" content="先看看AnnotationConfigApplicationContext上篇博客我们讲了一下ClassPathXmlApplicationContext解析Xml的总体流程，没有深入到细节。ClassPathXmlApplicationContext负责解析Xml，对应Xml的spring启动方式，我们可以这样启动spring：  ApplicationContext context &#x3D; new">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-11-21T14:29:53.000Z">
+<meta property="article:modified_time" content="2021-06-25T13:47:33.049Z">
+<meta property="article:author" content="zhengrenjie">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://www.jelliclecat.cn/articles/Spring/spring-2/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="zhengrenjie blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/cofess" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">昵称</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Web Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DCS/">DCS</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MutiThread/">MutiThread</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Mysql/">Mysql</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Netty/">Netty</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Rpc/">Rpc</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Summary/">Summary</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cache/" rel="tag">Cache</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DMA/" rel="tag">DMA</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Latex/" rel="tag">Latex</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Netty/" rel="tag">Netty</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rpc/" rel="tag">Rpc</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Summary/" rel="tag">Summary</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag">并发</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%80%A7%E8%83%BD/" rel="tag">性能</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E7%A0%81/" rel="tag">源码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">源码分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag">设计模式</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Cache/" style="font-size: 13px;">Cache</a> <a href="/tags/DMA/" style="font-size: 13px;">DMA</a> <a href="/tags/HttpClient/" style="font-size: 13px;">HttpClient</a> <a href="/tags/Java/" style="font-size: 14px;">Java</a> <a href="/tags/Latex/" style="font-size: 13px;">Latex</a> <a href="/tags/Linux/" style="font-size: 13.17px;">Linux</a> <a href="/tags/Mysql/" style="font-size: 13px;">Mysql</a> <a href="/tags/Netty/" style="font-size: 13.67px;">Netty</a> <a href="/tags/Rpc/" style="font-size: 13.5px;">Rpc</a> <a href="/tags/Spring/" style="font-size: 13.83px;">Spring</a> <a href="/tags/Summary/" style="font-size: 13.17px;">Summary</a> <a href="/tags/Zookeeper/" style="font-size: 13px;">Zookeeper</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 13px;">分布式</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13px;">多线程</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 13px;">并发</a> <a href="/tags/%E6%80%A7%E8%83%BD/" style="font-size: 13.33px;">性能</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 13px;">排序</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 13px;">源码</a> <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 13px;">源码分析</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13px;">设计模式</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">May 2019</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Mysql/">Mysql</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Mysql/Mysql-1/" class="title">从Mysql不走索引看InnoDB的索引原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-20T14:29:53.000Z" itemprop="datePublished">2020-03-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Spring/">Spring</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Spring/spring-2/" class="title">聊透Spring-2-聊透Xml配置和注解的混用以及其原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-21T14:29:53.000Z" itemprop="datePublished">2019-11-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Spring/">Spring</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Spring/spring-1/" class="title">聊透Spring-1-ClassPathXmlApplicationContext源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-13T14:41:10.000Z" itemprop="datePublished">2019-11-13</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Summary/">Summary</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Summary/summary-20191112/" class="title">6.1-11.11小结</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-12T00:02:10.000Z" itemprop="datePublished">2019-11-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Netty/">Netty</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Netty/netty-5/" class="title">Netty源码-5-Accept和Read事件监听过程</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-09-21T11:32:03.000Z" itemprop="datePublished">2019-09-21</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-spring-2" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      聊透Spring-2-聊透Xml配置和注解的混用以及其原理
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/articles/Spring/spring-2/" class="article-date">
+	  <time datetime="2019-11-21T14:29:53.000Z" itemprop="datePublished">2019-11-21</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Spring/" rel="tag">Spring</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/articles/Spring/spring-2/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="先看看AnnotationConfigApplicationContext"><a href="#先看看AnnotationConfigApplicationContext" class="headerlink" title="先看看AnnotationConfigApplicationContext"></a>先看看AnnotationConfigApplicationContext</h2><p>上篇博客我们讲了一下ClassPathXmlApplicationContext解析Xml的总体流程，没有深入到细节。ClassPathXmlApplicationContext负责解析Xml，对应Xml的spring启动方式，我们可以这样启动spring：</p>
+<blockquote>
+<p>ApplicationContext context = new ClassPathXmlApplicationContext(“applicationContext.xml”);</p>
+</blockquote>
+<p>相对应的AnnotationConfigApplicationContext代表的是以纯注解的方式启动spring：</p>
+<blockquote>
+<p>ApplicationContext context = new AnnotationConfigApplicationContext(“com.zrj”);</p>
+</blockquote>
+<p>这里传入的参数是扫描的Root包，spring会扫描这个包下的所有Class。</p>
+<p>###AnnotationConfigApplicationContext启动spring</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// AnnotationConfigApplicationContext.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AnnotationConfigApplicationContext</span> <span class="keyword">extends</span> <span class="title">GenericApplicationContext</span> <span class="keyword">implements</span> <span class="title">AnnotationConfigRegistry</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> AnnotatedBeanDefinitionReader reader;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> ClassPathBeanDefinitionScanner scanner;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">AnnotationConfigApplicationContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.reader = <span class="keyword">new</span> AnnotatedBeanDefinitionReader(<span class="keyword">this</span>);</span><br><span class="line">    <span class="keyword">this</span>.scanner = <span class="keyword">new</span> ClassPathBeanDefinitionScanner(<span class="keyword">this</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">AnnotationConfigApplicationContext</span><span class="params">(String... basePackages)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>();</span><br><span class="line">    scan(basePackages);</span><br><span class="line">    refresh();</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>new AnnotationConfigApplicationContext(“com.nowcoder.spring”);</p>
+</blockquote>
+<p>这样创建的AnnotationConfigApplicationContext调用的是上面的构造函数（其他的构造函数不列举了，都差不多），这样构造出来后，创建了一个AnnotatedBeanDefinitionReader和一个ClassPathBeanDefinitionScanner，这个两个类非常的重要，AnnotationConfigApplicationContext所有的工作都交给了这两个类去完成。</p>
+<p>看一下这个构造函数，首先调用this()初始化reader、scanner，然后调用scan，这是关键的一步，最终调用了ClassPathBeanDefinitionScanner#doScan方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> Set&lt;BeanDefinitionHolder&gt; <span class="title">doScan</span><span class="params">(String... basePackages)</span> </span>&#123;</span><br><span class="line">    Assert.notEmpty(basePackages, <span class="string">&quot;At least one base package must be specified&quot;</span>);</span><br><span class="line">    Set&lt;BeanDefinitionHolder&gt; beanDefinitions = <span class="keyword">new</span> LinkedHashSet&lt;&gt;();</span><br><span class="line">    <span class="keyword">for</span> (String basePackage : basePackages) &#123;</span><br><span class="line">      Set&lt;BeanDefinition&gt; candidates = findCandidateComponents(basePackage);</span><br><span class="line">      <span class="keyword">for</span> (BeanDefinition candidate : candidates) &#123;</span><br><span class="line">        ScopeMetadata scopeMetadata = <span class="keyword">this</span>.scopeMetadataResolver.resolveScopeMetadata(candidate);</span><br><span class="line">        candidate.setScope(scopeMetadata.getScopeName());</span><br><span class="line">        String beanName = <span class="keyword">this</span>.beanNameGenerator.generateBeanName(candidate, <span class="keyword">this</span>.registry);</span><br><span class="line">        <span class="keyword">if</span> (candidate <span class="keyword">instanceof</span> AbstractBeanDefinition) &#123;</span><br><span class="line">          postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (candidate <span class="keyword">instanceof</span> AnnotatedBeanDefinition) &#123;</span><br><span class="line">          AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (checkCandidate(beanName, candidate)) &#123;</span><br><span class="line">          BeanDefinitionHolder definitionHolder = <span class="keyword">new</span> BeanDefinitionHolder(candidate, beanName);</span><br><span class="line">          definitionHolder =</span><br><span class="line">              AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, <span class="keyword">this</span>.registry);</span><br><span class="line">          beanDefinitions.add(definitionHolder);</span><br><span class="line">          registerBeanDefinition(definitionHolder, <span class="keyword">this</span>.registry);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> beanDefinitions;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先调用findCandidateComponents找到basePackage下所有的BeanDefinition，这个过程比较复杂，是通过ASM实现的，通过读取Class文件的字节码，拿到类的元信息。这里Spring可以说是一丝不苟，通过读取Class字节码的方式，让自己的扫描元信息的工作坚决不影响类的加载周期，换句话说这里完全不用对类进行任何的加载工作就能拿到类的元信息了。</p>
+<p>找到所有的BeanDefinition后，工作就完成了一大半，Spring启动简单来说分两步走，第一步构建BeanDefinition作为Bean的候选人，第二步就是将BeanDefinition创建成一个个的Bean对象。</p>
+<p>最后将BeanDefinition注册进BeanFactory中，等待Bean被创建。</p>
+<p>在构造函数最后调用了refresh方法，这个方法和上篇博客中的ClassPathXmlApplicationContext里面调用的refresh是同一个方法，这里不再赘述了。</p>
+<p>传送门：<a href="https://www.jelliclecat.cn/articles/Spring/spring-1.html">透Spring-1-ClassPathXmlApplicationContext</a></p>
+<p>注意一点，AbstractRefreshableApplicationContext#refreshBeanFactory方法会调用loadBeanDefinitions，这是一个模板方法，在ClassPathXmlApplicationContext是有实现的，但是在AnnotationConfigApplicationContext是没有实现的，因为AnnotationConfigApplicationContext中BeanDefinition的扫描是交给ClassPathBeanDefinitionScanner去做的。</p>
+<p>调用完doScan之后，调用了AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry)：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ClassPathBeanDefinitionScanner.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">scan</span><span class="params">(String... basePackages)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">int</span> beanCountAtScanStart = <span class="keyword">this</span>.registry.getBeanDefinitionCount();</span><br><span class="line"></span><br><span class="line">  doScan(basePackages);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Register annotation config processors, if necessary.</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">this</span>.includeAnnotationConfig) &#123;</span><br><span class="line">    AnnotationConfigUtils.registerAnnotationConfigProcessors(<span class="keyword">this</span>.registry);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (<span class="keyword">this</span>.registry.getBeanDefinitionCount() - beanCountAtScanStart);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法用于开启对注解的解析，这部分代码后面会讲解，我们还会遇到它的。includeAnnotationConfig这个配置默认是true。</p>
+<h2 id="Xml和注解配置Spring混用是怎么实现的？"><a href="#Xml和注解配置Spring混用是怎么实现的？" class="headerlink" title="Xml和注解配置Spring混用是怎么实现的？"></a>Xml和注解配置Spring混用是怎么实现的？</h2><p>如果我们纯粹的使用Xml作为Spring的启动方式的话，那么全部bean的组装是有Xml文件控制的，类中定义的@Autowired、@Component等等注解是不会起作用的。</p>
+<p>但是绝大多数情况下，我们既需要使用Xml配置Bean，同时也需要使用Annotation配置或组装Bean。这是怎么做到的呢？就是使用context扩展标签（除了spring-beans.xsd中定义的标签以外的所有标签都是扩展标签）：</p>
+<blockquote>
+<p>&lt;context:component-scan base-package=”xxx.xxx” /&gt;</p>
+</blockquote>
+<p>这个标签的命名空间是<a target="_blank" rel="noopener" href="http://www.springframework.org/schema/context">http://www.springframework.org/schema/context</a></p>
+<p>通过使用&lt;context:component-scan base-package=”xxx.xxx” /&gt;标签，spring会去扫描base-package指定的包下去扫描所有的Class文件，寻找潜在的Bean（被@Component标注的类），然后转换为BeanDefinition注册进BeanFactory。当使用component-scan扩展标签的时候，就默认开启了注解的解析功能，这时候，工程中所有的注解就会被spring识别并处理了（比如@Autowired、@Configuration、@Resource等）。</p>
+<p><strong>这里一旦使用了component-scan标签，那么不管是通过Xml标签解得来的Bean还是通过component-scan扫描注解得来Bean都会开启对Spring注解（例如@Autowired）的识别（不单单是base-package中扫描得到的Bean），因为component-scan会使得BeanFactory注册一系类解析注解的BeanPostProcessor，这些BeanPostProcessor对于不管是Xml定义的Bean还是注解配置的Bean都会生效。</strong>这部分稍后会分析代码。</p>
+<p>这样就实现了spring中Xml和注解混用。</p>
+<h2 id="扩展标签"><a href="#扩展标签" class="headerlink" title="扩展标签"></a>扩展标签</h2><p>在context:component-scan中，context是命名空间，真正的标签是component-scan。</p>
+<p>与component-scan相似的扩展标签还有很多，具体的作用不解释了，我们主要关心的是扩展标签是如何被spring处理的，部分扩展标签如下：</p>
+<blockquote>
+<p>&lt;context:annotation-config /&gt;</p>
+<p>&lt;task:scheduled-tasks /&gt;</p>
+<p>&lt;cache:annotation-driven mode=”aspectj”/&gt;</p>
+<p>&lt;aop:aspectj-autoproxy /&gt;</p>
+</blockquote>
+<p>每个扩展标签（这里的context、task、cache、aop就是扩展标签的命名空间，”:”后面的是扩展标签）都有各自的命名空间，例如context标签的命名空间就是<a target="_blank" rel="noopener" href="http://www.springframework.org/schema/context%E3%80%82">http://www.springframework.org/schema/context。</a></p>
+<p>那么扩展标签（或者说扩展命名空间，spring中是以命名空间为单位进行处理的而不是单个的标签）在spring中是如何被处理的呢？关键就在spring.handler配置文件中。</p>
+<h2 id="spring-handler配置文件"><a href="#spring-handler配置文件" class="headerlink" title="spring.handler配置文件"></a>spring.handler配置文件</h2><p>首先，我们关注一下Spring中的一个配置文件，spring.handler：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">http\://www.springframework.org/schema/context</span>=<span class="string">org.springframework.context.config.ContextNamespaceHandler</span></span><br><span class="line"><span class="meta">http\://www.springframework.org/schema/jee</span>=<span class="string">org.springframework.ejb.config.JeeNamespaceHandler</span></span><br><span class="line"><span class="meta">http\://www.springframework.org/schema/lang</span>=<span class="string">org.springframework.scripting.config.LangNamespaceHandler</span></span><br><span class="line"><span class="meta">http\://www.springframework.org/schema/task</span>=<span class="string">org.springframework.scheduling.config.TaskNamespaceHandler</span></span><br><span class="line"><span class="meta">http\://www.springframework.org/schema/cache</span>=<span class="string">org.springframework.cache.config.CacheNamespaceHandler</span></span><br></pre></td></tr></table></figure>
+
+<p>这是一个property文件，由几组key-value组成，现在先看一下这个配置文件中的value，value比较明显都是一个全限定类名。很容易就能找到上面我们使用的context的命名空间的处理类：ContextNamespaceHandler。我们的context命名空间就是在这个类里面被处理的了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ContextNamespaceHandler</span> <span class="keyword">extends</span> <span class="title">NamespaceHandlerSupport</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    registerBeanDefinitionParser(<span class="string">&quot;property-placeholder&quot;</span>, <span class="keyword">new</span> PropertyPlaceholderBeanDefinitionParser());</span><br><span class="line">    registerBeanDefinitionParser(<span class="string">&quot;property-override&quot;</span>, <span class="keyword">new</span> PropertyOverrideBeanDefinitionParser());</span><br><span class="line">    registerBeanDefinitionParser(<span class="string">&quot;annotation-config&quot;</span>, <span class="keyword">new</span> AnnotationConfigBeanDefinitionParser());</span><br><span class="line">    registerBeanDefinitionParser(<span class="string">&quot;component-scan&quot;</span>, <span class="keyword">new</span> ComponentScanBeanDefinitionParser());</span><br><span class="line">    registerBeanDefinitionParser(<span class="string">&quot;load-time-weaver&quot;</span>, <span class="keyword">new</span> LoadTimeWeaverBeanDefinitionParser());</span><br><span class="line">    registerBeanDefinitionParser(<span class="string">&quot;spring-configured&quot;</span>, <span class="keyword">new</span> SpringConfiguredBeanDefinitionParser());</span><br><span class="line">    registerBeanDefinitionParser(<span class="string">&quot;mbean-export&quot;</span>, <span class="keyword">new</span> MBeanExportBeanDefinitionParser());</span><br><span class="line">    registerBeanDefinitionParser(<span class="string">&quot;mbean-server&quot;</span>, <span class="keyword">new</span> MBeanServerBeanDefinitionParser());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到ContextNamespaceHandler可以处理context命名空间中的如下扩展标签：</p>
+<ul>
+<li>property-placeholder</li>
+<li>property-override</li>
+<li>annotation-config</li>
+<li>component-scan</li>
+<li>load-time-weaver</li>
+<li>spring-configured</li>
+<li>mbean-export</li>
+<li>mbean-server</li>
+</ul>
+<p>每个标签又有一个专门的类去解析，这里我们用上面举过的例子component-scan，看看它的处理类：ComponentScanBeanDefinitionParser。</p>
+<h2 id="在哪里解析扩展标签"><a href="#在哪里解析扩展标签" class="headerlink" title="在哪里解析扩展标签"></a>在哪里解析扩展标签</h2><p>这里要回顾上一篇博客中的ClassPathXmlApplicationContext类了，上一节我们讲到了Xml的解析流程交给了DefaultBeanDefinitionDocumentReader去控制，这个类会遍历Xml中的每一个节点，根据节点的类型执行不同的逻辑。关键的方法在这里（类：DefaultBeanDefinitionDocumentReader.java）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// DefaultBeanDefinitionDocumentReader.java</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">parseBeanDefinitions</span><span class="params">(Element root, BeanDefinitionParserDelegate delegate)</span> </span>&#123;</span><br><span class="line">   <span class="keyword">if</span> (delegate.isDefaultNamespace(root)) &#123;</span><br><span class="line">      NodeList nl = root.getChildNodes();</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; nl.getLength(); i++) &#123;</span><br><span class="line">         Node node = nl.item(i);</span><br><span class="line">         <span class="keyword">if</span> (node <span class="keyword">instanceof</span> Element) &#123;</span><br><span class="line">            Element ele = (Element) node;</span><br><span class="line">            <span class="keyword">if</span> (delegate.isDefaultNamespace(ele)) &#123;</span><br><span class="line">               parseDefaultElement(ele, delegate);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">               delegate.parseCustomElement(ele);</span><br><span class="line">            &#125;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">else</span> &#123;</span><br><span class="line">      delegate.parseCustomElement(root);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>方法遍历了root（代表Xml配置文件的根节点），然后遍历每一个子节点。关键方法是delegate.isDefaultNamespace这个方法，这个方法用来判断当前节点是否是beans命名空间（也是spring的Xml配置文件的默认命名空间），如果是，则继续对&lt;bean&gt;标签等进行解析，这个步骤在上篇博客详细讲过了（传送门：<a href="https://www.jelliclecat.cn/articles/Spring/spring-1.html">透Spring-1-ClassPathXmlApplicationContext</a>），如果不是，则是扩展标签，需要对扩展命名空间内的标签进行特殊处理，也就是调用delegate.parseCustomElement(ele)方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// BeanDefinitionParserDelegate.java</span></span><br><span class="line"><span class="comment">// 判断当前标签是否属于默认（beans）命名空间的方法</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String BEANS_NAMESPACE_URI = <span class="string">&quot;http://www.springframework.org/schema/beans&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isDefaultNamespace</span><span class="params">(<span class="meta">@Nullable</span> String namespaceUri)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> (!StringUtils.hasLength(namespaceUri) || BEANS_NAMESPACE_URI.equals(namespaceUri));</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<p>好了我们接着看parseCustomElement方法，同样在BeanDefinitionParserDelegate类中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// BeanDefinitionParserDelegate.java</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> BeanDefinition <span class="title">parseCustomElement</span><span class="params">(Element ele, <span class="meta">@Nullable</span> BeanDefinition containingBd)</span> </span>&#123;</span><br><span class="line">    String namespaceUri = getNamespaceURI(ele);</span><br><span class="line">    <span class="keyword">if</span> (namespaceUri == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    NamespaceHandler handler = <span class="keyword">this</span>.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);</span><br><span class="line">    <span class="keyword">if</span> (handler == <span class="keyword">null</span>) &#123;</span><br><span class="line">      error(<span class="string">&quot;Unable to locate Spring NamespaceHandler for XML schema namespace [&quot;</span> + namespaceUri + <span class="string">&quot;]&quot;</span>, ele);</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> handler.parse(ele, <span class="keyword">new</span> ParserContext(<span class="keyword">this</span>.readerContext, <span class="keyword">this</span>, containingBd));</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里通过节点的namespaceUri找到对应处理当前节点标签的命名空间的NamespaceHandler，然后调用parse方法去解析。</p>
+<p>嗯~我们终于看到NamespaceHandler的身影了，还记得上面的ContextNamespaceHandler吗？快接上了，咱们继续往下看。</p>
+<p>这里getNamespaceHandlerResolver是获取的什么类呢？获取的是接口NamespaceHandlerResolver的实现类，这个接口的实现类只有一个，就是DefaultNamespaceHandlerResolver。</p>
+<h2 id="DefaultNamespaceHandlerResolver"><a href="#DefaultNamespaceHandlerResolver" class="headerlink" title="DefaultNamespaceHandlerResolver"></a>DefaultNamespaceHandlerResolver</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_HANDLER_MAPPINGS_LOCATION = <span class="string">&quot;META-INF/spring.handlers&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这是这个类上来的第一句话，是不是特别特别的亲切！（前提是你好好看了这篇博客上面的内容）</p>
+<p>这里定义了一个字符串常量表示spring.handlers文件的位置，你是不是立马就意识到了这个类是用来干嘛的，没错，就是用来加载spring.handlers配置的，不光可以加载配置，还可以决定一个namespaceUri对应的是哪个NamespaceHandler。看看具体代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// DefaultNamespaceHandlerResolver.java</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> NamespaceHandler <span class="title">resolve</span><span class="params">(String namespaceUri)</span> </span>&#123;</span><br><span class="line">    Map&lt;String, Object&gt; handlerMappings = getHandlerMappings();</span><br><span class="line">    Object handlerOrClassName = handlerMappings.get(namespaceUri);</span><br><span class="line">    <span class="keyword">if</span> (handlerOrClassName == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (handlerOrClassName <span class="keyword">instanceof</span> NamespaceHandler) &#123;</span><br><span class="line">      <span class="keyword">return</span> (NamespaceHandler) handlerOrClassName;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">      String className = (String) handlerOrClassName;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        Class&lt;?&gt; handlerClass = ClassUtils.forName(className, <span class="keyword">this</span>.classLoader);</span><br><span class="line">        <span class="keyword">if</span> (!NamespaceHandler.class.isAssignableFrom(handlerClass)) &#123;</span><br><span class="line">          <span class="keyword">throw</span> <span class="keyword">new</span> FatalBeanException(<span class="string">&quot;Class [&quot;</span> + className + <span class="string">&quot;] for namespace [&quot;</span> + namespaceUri +</span><br><span class="line">              <span class="string">&quot;] does not implement the [&quot;</span> + NamespaceHandler.class.getName() + <span class="string">&quot;] interface&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        NamespaceHandler namespaceHandler = (NamespaceHandler) BeanUtils.instantiateClass(handlerClass);</span><br><span class="line">        namespaceHandler.init();</span><br><span class="line">        handlerMappings.put(namespaceUri, namespaceHandler);</span><br><span class="line">        <span class="keyword">return</span> namespaceHandler;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">catch</span> (ClassNotFoundException ex) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> FatalBeanException(<span class="string">&quot;Could not find NamespaceHandler class [&quot;</span> + className +</span><br><span class="line">            <span class="string">&quot;] for namespace [&quot;</span> + namespaceUri + <span class="string">&quot;]&quot;</span>, ex);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">catch</span> (LinkageError err) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> FatalBeanException(<span class="string">&quot;Unresolvable class definition for NamespaceHandler class [&quot;</span> +</span><br><span class="line">            className + <span class="string">&quot;] for namespace [&quot;</span> + namespaceUri + <span class="string">&quot;]&quot;</span>, err);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的handlerMappings最初是一个字符串对字符串的map，因为最初加载的spring.handlers还是一个property文件。最后一个else里面，使用反射区拿到对应的NamespaceHandler，并保存在了handlerMappings中。这样，就加载完了spring.handlers中的所有命名空间对应的NamespaceHandler实例了。</p>
+<p>这里是不是有点SPI的味道~</p>
+<p>当spring扫描Xml扫描到<code>&lt;context:component-scan base-package=&quot;xxx.xxx&quot; /&gt;</code>标签时，发现不是默认命名空间，就去查找context的命名空间，就是<a target="_blank" rel="noopener" href="http://www.springframework.org/schema/context%EF%BC%8C%E7%84%B6%E5%90%8E%E9%80%9A%E8%BF%87DefaultNamespaceHandlerResolver%E6%9F%A5%E6%89%BE%E8%BF%99%E4%B8%AA%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%AF%B9%E5%BA%94%E7%9A%84NamespaceHandler%EF%BC%8C%E8%BF%99%E9%87%8C%E5%B0%B1%E6%89%BE%E5%88%B0%E4%BA%86ContextNamespaceHandler%E3%80%82">http://www.springframework.org/schema/context，然后通过DefaultNamespaceHandlerResolver查找这个命名空间对应的NamespaceHandler，这里就找到了ContextNamespaceHandler。</a></p>
+<p>接下来的解析工作就委托给了ContextNamespaceHandler，所以我们接着看ContextNamespaceHandler。</p>
+<h2 id="ContextNamespaceHandler"><a href="#ContextNamespaceHandler" class="headerlink" title="ContextNamespaceHandler"></a>ContextNamespaceHandler</h2><p>这个类只是实现了init方法，注册进了一批标签和处理类，<code>component-scan</code>的处理类是ComponentScanBeanDefinitionParser，我们重点看看这个类，这个类实现了BeanDefinitionParser接口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BeanDefinitionParser</span> </span>&#123;</span><br><span class="line">	<span class="function">BeanDefinition <span class="title">parse</span><span class="params">(Element element, ParserContext parserContext)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ComponentScanBeanDefinitionParser的实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ComponentScanBeanDefinitionParser.java</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> BeanDefinition <span class="title">parse</span><span class="params">(Element element, ParserContext parserContext)</span> </span>&#123;</span><br><span class="line">    String basePackage = element.getAttribute(BASE_PACKAGE_ATTRIBUTE);</span><br><span class="line">    basePackage = parserContext.getReaderContext().getEnvironment().resolvePlaceholders(basePackage);</span><br><span class="line">    String[] basePackages = StringUtils.tokenizeToStringArray(basePackage,</span><br><span class="line">        ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS);</span><br><span class="line"></span><br><span class="line">    ClassPathBeanDefinitionScanner scanner = configureScanner(parserContext, element);</span><br><span class="line">    Set&lt;BeanDefinitionHolder&gt; beanDefinitions = scanner.doScan(basePackages);</span><br><span class="line">    registerComponents(parserContext.getReaderContext(), beanDefinitions, element);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>流程非常清晰：</p>
+<ul>
+<li>从Element中找到base-package属性，设置待扫描包。</li>
+<li>创建ClassPathBeanDefinitionScanner</li>
+<li>使用ClassPathBeanDefinitionScanner扫描base-package包获得BeanDefinitions</li>
+<li>将扫描到的BeanDefinitions注册进BeanFactory</li>
+</ul>
+<p>这里有个熟悉的朋友：ClassPathBeanDefinitionScanner，在这篇博客的开头讲AnnotationConfigApplicationContext的时候就提到了ClassPathBeanDefinitionScanner，里面有一个重要的方法叫doScan，用来将Class文件转换为BeanDefinition。</p>
+<h2 id="处理注解"><a href="#处理注解" class="headerlink" title="处理注解"></a>处理注解</h2><p>这里还没完，还有一个重要的功能没有看到，就是在什么地方注册的处理注解的BeanPostProcessor。</p>
+<p>上面parse的最后调用了registerComponents方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ComponentScanBeanDefinitionParser.java</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">registerComponents</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">      XmlReaderContext readerContext, Set&lt;BeanDefinitionHolder&gt; beanDefinitions, Element element)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    Object source = readerContext.extractSource(element);</span><br><span class="line">    CompositeComponentDefinition compositeDef = <span class="keyword">new</span> CompositeComponentDefinition(element.getTagName(), source);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (BeanDefinitionHolder beanDefHolder : beanDefinitions) &#123;</span><br><span class="line">      compositeDef.addNestedComponent(<span class="keyword">new</span> BeanComponentDefinition(beanDefHolder));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Register annotation config processors, if necessary.</span></span><br><span class="line">    <span class="keyword">boolean</span> annotationConfig = <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">if</span> (element.hasAttribute(ANNOTATION_CONFIG_ATTRIBUTE)) &#123;</span><br><span class="line">      annotationConfig = Boolean.valueOf(element.getAttribute(ANNOTATION_CONFIG_ATTRIBUTE));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (annotationConfig) &#123;</span><br><span class="line">      Set&lt;BeanDefinitionHolder&gt; processorDefinitions = AnnotationConfigUtils.registerAnnotationConfigProcessors(readerContext.getRegistry(), source);</span><br><span class="line">      <span class="keyword">for</span> (BeanDefinitionHolder processorDefinition : processorDefinitions) &#123;</span><br><span class="line">        compositeDef.addNestedComponent(<span class="keyword">new</span> BeanComponentDefinition(processorDefinition));</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    readerContext.fireComponentRegistered(compositeDef);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>里面调用了</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AnnotationConfigUtils.registerAnnotationConfigProcessors(readerContext.getRegistry(), source);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// AnnotationConfigUtils.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Set&lt;BeanDefinitionHolder&gt; <span class="title">registerAnnotationConfigProcessors</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">      BeanDefinitionRegistry registry, <span class="meta">@Nullable</span> Object source)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    DefaultListableBeanFactory beanFactory = unwrapDefaultListableBeanFactory(registry);</span><br><span class="line">    <span class="keyword">if</span> (beanFactory != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (!(beanFactory.getDependencyComparator() <span class="keyword">instanceof</span> AnnotationAwareOrderComparator)) &#123;</span><br><span class="line">        beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (!(beanFactory.getAutowireCandidateResolver() <span class="keyword">instanceof</span> ContextAnnotationAutowireCandidateResolver)) &#123;</span><br><span class="line">        beanFactory.setAutowireCandidateResolver(<span class="keyword">new</span> ContextAnnotationAutowireCandidateResolver());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Set&lt;BeanDefinitionHolder&gt; beanDefs = <span class="keyword">new</span> LinkedHashSet&lt;&gt;(<span class="number">4</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) &#123;</span><br><span class="line">      RootBeanDefinition def = <span class="keyword">new</span> RootBeanDefinition(ConfigurationClassPostProcessor.class);</span><br><span class="line">      def.setSource(source);</span><br><span class="line">      beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!registry.containsBeanDefinition(AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) &#123;</span><br><span class="line">      RootBeanDefinition def = <span class="keyword">new</span> RootBeanDefinition(AutowiredAnnotationBeanPostProcessor.class);</span><br><span class="line">      def.setSource(source);</span><br><span class="line">      beanDefs.add(registerPostProcessor(registry, def, AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Check for JSR-250 support, and if present add the CommonAnnotationBeanPostProcessor.</span></span><br><span class="line">    <span class="keyword">if</span> (jsr250Present &amp;&amp; !registry.containsBeanDefinition(COMMON_ANNOTATION_PROCESSOR_BEAN_NAME)) &#123;</span><br><span class="line">      RootBeanDefinition def = <span class="keyword">new</span> RootBeanDefinition(CommonAnnotationBeanPostProcessor.class);</span><br><span class="line">      def.setSource(source);</span><br><span class="line">      beanDefs.add(registerPostProcessor(registry, def, COMMON_ANNOTATION_PROCESSOR_BEAN_NAME));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Check for JPA support, and if present add the PersistenceAnnotationBeanPostProcessor.</span></span><br><span class="line">    <span class="keyword">if</span> (jpaPresent &amp;&amp; !registry.containsBeanDefinition(PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME)) &#123;</span><br><span class="line">      RootBeanDefinition def = <span class="keyword">new</span> RootBeanDefinition();</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        def.setBeanClass(ClassUtils.forName(PERSISTENCE_ANNOTATION_PROCESSOR_CLASS_NAME,</span><br><span class="line">            AnnotationConfigUtils.class.getClassLoader()));</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">catch</span> (ClassNotFoundException ex) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(</span><br><span class="line">            <span class="string">&quot;Cannot load optional framework class: &quot;</span> + PERSISTENCE_ANNOTATION_PROCESSOR_CLASS_NAME, ex);</span><br><span class="line">      &#125;</span><br><span class="line">      def.setSource(source);</span><br><span class="line">      beanDefs.add(registerPostProcessor(registry, def, PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!registry.containsBeanDefinition(EVENT_LISTENER_PROCESSOR_BEAN_NAME)) &#123;</span><br><span class="line">      RootBeanDefinition def = <span class="keyword">new</span> RootBeanDefinition(EventListenerMethodProcessor.class);</span><br><span class="line">      def.setSource(source);</span><br><span class="line">      beanDefs.add(registerPostProcessor(registry, def, EVENT_LISTENER_PROCESSOR_BEAN_NAME));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!registry.containsBeanDefinition(EVENT_LISTENER_FACTORY_BEAN_NAME)) &#123;</span><br><span class="line">      RootBeanDefinition def = <span class="keyword">new</span> RootBeanDefinition(DefaultEventListenerFactory.class);</span><br><span class="line">      def.setSource(source);</span><br><span class="line">      beanDefs.add(registerPostProcessor(registry, def, EVENT_LISTENER_FACTORY_BEAN_NAME));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> beanDefs;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>里面注册了一堆BeanPostProcessor：</p>
+<ul>
+<li>ConfigurationClassPostProcessor，处理@Configuration和@Bean</li>
+<li>AutowiredAnnotationBeanPostProcessor，处理@Autowired，@Value等相关注解</li>
+<li>CommonAnnotationBeanPostProcessor，支持JSR-250标签，@PostConstruct、@PreDestroy、@Resource</li>
+<li>EventListenerMethodProcessor，处理@EventListener</li>
+</ul>
+<p>这些BeanPostProcessor就是处理各种注解的关键了。</p>
+<p>这里也印证了上面说到的，由于注解的处理是借助BeanPostProcessor实现的，所以对所有的BeanDefinition都会生效，即使是从Xml解析过来的BeanDefinition。</p>
+<p>要注意的是，BeanPostProcessor有很多子接口，不同的子类是在不同的生命周期中执行的，这个咱们之后会用一篇博客聊透Bean的生命周期。</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://www.jelliclecat.cn/articles/Spring/spring-2/" title="聊透Spring-2-聊透Xml配置和注解的混用以及其原理" target="_blank" rel="external">https://www.jelliclecat.cn/articles/Spring/spring-2/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/cofess" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/cofess" target="_blank"><span class="text-dark">昵称</span><small class="ml-1x">Web Developer &amp; Designer</small></a></h3>
+        <div>个人简介。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/articles/Mysql/Mysql-1/" title="从Mysql不走索引看InnoDB的索引原理"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/articles/Spring/spring-1/" title="聊透Spring-1-ClassPathXmlApplicationContext源码解析"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

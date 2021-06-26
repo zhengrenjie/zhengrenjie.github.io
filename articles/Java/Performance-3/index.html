@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Java高性能编程串讲-IO读写的那些细节 | Hexo</title>
+  <meta name="description" content="〇、前言（碎碎念）磁盘的读写也同样是一个非常容易被忽略的点，在生产环境中也出现过由于磁盘读写代码编写不当造成的线上服务不可用，待会我会讲一下这个案例。磁盘是系统中最慢的IO之一，不当的编码对性能的影响非常大。 磁盘篇一、JVM堆内内存和堆外内存首先讲一下堆外内存，堆外内存是啥呢？比如我们new出来的对象，全部在JVM的堆内存中，我们写的绝大多数程序也都使用的是JVM的堆内存，当然堆内存在JVM中又">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java高性能编程串讲-IO读写的那些细节">
+<meta property="og:url" content="https://www.jelliclecat.cn/articles/Java/Performance-3/index.html">
+<meta property="og:site_name" content="zhengrenjie blog">
+<meta property="og:description" content="〇、前言（碎碎念）磁盘的读写也同样是一个非常容易被忽略的点，在生产环境中也出现过由于磁盘读写代码编写不当造成的线上服务不可用，待会我会讲一下这个案例。磁盘是系统中最慢的IO之一，不当的编码对性能的影响非常大。 磁盘篇一、JVM堆内内存和堆外内存首先讲一下堆外内存，堆外内存是啥呢？比如我们new出来的对象，全部在JVM的堆内存中，我们写的绝大多数程序也都使用的是JVM的堆内存，当然堆内存在JVM中又">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-09-01T13:44:50.000Z">
+<meta property="article:modified_time" content="2021-06-25T13:47:33.058Z">
+<meta property="article:author" content="zhengrenjie">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="性能">
+<meta property="article:tag" content="DMA">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://www.jelliclecat.cn/articles/Java/Performance-3/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="zhengrenjie blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/cofess" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">昵称</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Web Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DCS/">DCS</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MutiThread/">MutiThread</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Mysql/">Mysql</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Netty/">Netty</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Rpc/">Rpc</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Summary/">Summary</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cache/" rel="tag">Cache</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DMA/" rel="tag">DMA</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Latex/" rel="tag">Latex</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Netty/" rel="tag">Netty</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rpc/" rel="tag">Rpc</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Summary/" rel="tag">Summary</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag">并发</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%80%A7%E8%83%BD/" rel="tag">性能</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E7%A0%81/" rel="tag">源码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">源码分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag">设计模式</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Cache/" style="font-size: 13px;">Cache</a> <a href="/tags/DMA/" style="font-size: 13px;">DMA</a> <a href="/tags/HttpClient/" style="font-size: 13px;">HttpClient</a> <a href="/tags/Java/" style="font-size: 14px;">Java</a> <a href="/tags/Latex/" style="font-size: 13px;">Latex</a> <a href="/tags/Linux/" style="font-size: 13.17px;">Linux</a> <a href="/tags/Mysql/" style="font-size: 13px;">Mysql</a> <a href="/tags/Netty/" style="font-size: 13.67px;">Netty</a> <a href="/tags/Rpc/" style="font-size: 13.5px;">Rpc</a> <a href="/tags/Spring/" style="font-size: 13.83px;">Spring</a> <a href="/tags/Summary/" style="font-size: 13.17px;">Summary</a> <a href="/tags/Zookeeper/" style="font-size: 13px;">Zookeeper</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 13px;">分布式</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13px;">多线程</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 13px;">并发</a> <a href="/tags/%E6%80%A7%E8%83%BD/" style="font-size: 13.33px;">性能</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 13px;">排序</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 13px;">源码</a> <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 13px;">源码分析</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13px;">设计模式</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">May 2019</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Mysql/">Mysql</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Mysql/Mysql-1/" class="title">从Mysql不走索引看InnoDB的索引原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-20T14:29:53.000Z" itemprop="datePublished">2020-03-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Spring/">Spring</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Spring/spring-2/" class="title">聊透Spring-2-聊透Xml配置和注解的混用以及其原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-21T14:29:53.000Z" itemprop="datePublished">2019-11-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Spring/">Spring</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Spring/spring-1/" class="title">聊透Spring-1-ClassPathXmlApplicationContext源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-13T14:41:10.000Z" itemprop="datePublished">2019-11-13</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Summary/">Summary</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Summary/summary-20191112/" class="title">6.1-11.11小结</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-12T00:02:10.000Z" itemprop="datePublished">2019-11-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Netty/">Netty</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Netty/netty-5/" class="title">Netty源码-5-Accept和Read事件监听过程</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-09-21T11:32:03.000Z" itemprop="datePublished">2019-09-21</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Performance-3" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Java高性能编程串讲-IO读写的那些细节
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/articles/Java/Performance-3/" class="article-date">
+	  <time datetime="2019-09-01T13:44:50.000Z" itemprop="datePublished">2019-09-01</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/DMA/" rel="tag">DMA</a>, <a class="article-tag-link-link" href="/tags/Java/" rel="tag">Java</a>, <a class="article-tag-link-link" href="/tags/%E6%80%A7%E8%83%BD/" rel="tag">性能</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/articles/Java/Performance-3/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="〇、前言（碎碎念）"><a href="#〇、前言（碎碎念）" class="headerlink" title="〇、前言（碎碎念）"></a>〇、前言（碎碎念）</h2><p>磁盘的读写也同样是一个非常容易被忽略的点，在生产环境中也出现过由于磁盘读写代码编写不当造成的线上服务不可用，待会我会讲一下这个案例。磁盘是系统中最慢的IO之一，不当的编码对性能的影响非常大。</p>
+<h2 id="磁盘篇"><a href="#磁盘篇" class="headerlink" title="磁盘篇"></a>磁盘篇</h2><h3 id="一、JVM堆内内存和堆外内存"><a href="#一、JVM堆内内存和堆外内存" class="headerlink" title="一、JVM堆内内存和堆外内存"></a>一、JVM堆内内存和堆外内存</h3><p>首先讲一下堆外内存，堆外内存是啥呢？比如我们new出来的对象，全部在JVM的堆内存中，我们写的绝大多数程序也都使用的是JVM的堆内存，当然堆内存在JVM中又被划分为很多块（Eden，S1，S2，Old等等），但这不是今天的重点，相信大家对堆内存还是非常熟悉的。那堆外内存是什么呢？就是非JVM管理的内存，是不是很神奇，Java是可以操作JVM内存以外的内存的，通过sun提供的UNSAFE类，可以通过<code>UNSAFE.allocateDirect</code>分配堆外内存（也可以用过ByteBuffer使用堆外内存），之所以叫UNSAFE类，是因为这部分内存需要我们自己管理，JVM不负责这块内存的管理（虽然FullGC对这块内存还是有效的），这块内存需要我们自己清理释放，使用起来没有JVM内存方便，但是堆外内存有非常多的优点是堆内存不具有的，其中非常重要的一点以及使用堆外内存的主要因素就是：堆外内存的IO速度优于堆内存的IO速度，但是缺点就是，分配堆外内存的速度是明显慢于堆内存的。</p>
+<h3 id="二、IO读写"><a href="#二、IO读写" class="headerlink" title="二、IO读写"></a>二、IO读写</h3><h4 id="传统做法"><a href="#传统做法" class="headerlink" title="传统做法"></a>传统做法</h4><p>试想有这样一个应用：将本地磁盘中的一个文件通过网络发送给客户端。</p>
+<p>习惯的想到使用InputStream和OutputStream，首先使用InputStream从本地磁盘读取文件，然后用一个buffer存在内存中，然后用OutputStream把buffer中的数据发送给客户端。</p>
+<p>看起来是一个非常自然的过程，我们分析一下这个过程中的一些细节：数据从磁盘到我们的buffer都经历了些什么呢？</p>
+<p>首先，我们调用InputStream的read方法的时候，read方法最终调用了JVM的native方法，而native方法中的read方法最终会调用系统调用read方法（linux自身的read方法），这个系统调用会导致系统从用户态切换到内核态，然后DMA（待会介绍DMA）把数据从磁盘搬到内核内存空间，然后CPU再将内核空间的数据拷贝到堆外用户内存，系统调用到这里结束，接下来的工作要交给JVM，所以需要从内核态切换为用户态，最后CPU还要将堆外内存拷贝进堆内存的buffer中，这时，我们才在buffer中拿到我们从磁盘读取的数据。</p>
+<p>上面这个过程非常重要，仔细看一下，我们发现使用InputStream从磁盘中读取数据做了非常多的事情：</p>
+<ul>
+<li>一次磁盘读取</li>
+<li>两次内存拷贝（内核空间到堆外用户空间，堆外到JVM堆内）</li>
+<li>两次系统状态切换</li>
+</ul>
+<p>系统转态切换是非常耗时的，需要保存当前转态的上下文，并载入要转换转态的上下文，如果频繁的切换系统转态带来的开销也将非常可观。</p>
+<p>到现在数据才读到我们的堆内存中，我们接下来还要将buffer中的数据通过OutputStream发送给客户端，这时我们同样进行了两次内存拷贝（堆内到堆外，堆外到内核空间），两次系统转态切换，以及一次网络IO。所以我们一共进行了4次内存拷贝，4次系统转态切换。</p>
+<p>怎么样，是不是贼费事，我们看看有没有改进办法，我们将数据千辛万苦读到buffer中，然后又千辛万苦从buffer中扔给网络IO，其实完全没有必要从内核中读到堆内，这一步是多余的。</p>
+<h4 id="mmap"><a href="#mmap" class="headerlink" title="mmap"></a>mmap</h4><p>为了优化这种情况，linux推出mmap系统调用代替read系统调用，该系统调用会将磁盘中的文件地址映射到内核空间中的地址，然后再将内核空间中的地址映射到用户空间中的一个地址，使得用户空间和内核空间共享一份数据，对于Java来说，JVM还会把堆外的用户空间映射到堆内存中，但是这是JVM的扩展行为，不属于mmap系统调用，所以JVM不是真正的共享，其中还是会发生拷贝。</p>
+<p>Java中可以通过<code>FileChannel#map</code>方法调用mmap，通过使用mmap我们再看一下读取数据需要经过哪些过程：</p>
+<ul>
+<li>一次磁盘读取</li>
+<li>一次内存拷贝（内核空间和堆外用户空间共享了，没有拷贝，JVM从堆外拷贝到堆内）</li>
+<li>两次系统状态切换</li>
+</ul>
+<p>这样，我们读取数据就节约了一次内存到内存的拷贝，但是发送给网络IO无法使用mmap，仍然需要两次内存拷贝。所以使用mmap代替read之后，我们需要3次内存拷贝，4次系统转态切换。</p>
+<h4 id="DMA（插个队）"><a href="#DMA（插个队）" class="headerlink" title="DMA（插个队）"></a>DMA（插个队）</h4><p>我们继续之前，可以先看一下DMA。DMA（Direct Memory Access，直接内存访问）是个什么东西呢？这个东西就很牛逼了，它是专门用来给内存“搬数据”的，可以称得上是内存专用的数据搬运工。为什么需要它呢，因为CPU忙啊，如果要从磁盘中搬个几百兆的数据到内存中，如果只依靠CPU去寻址，然后去搬数据，那要搬到什么时候啊，况且CPU是个大忙人啊，不能把宝贵的CPU资源用来搬数据，那岂不是太大材小用了，所以就设计了DMA这个东西，DMA是主板上的一个专门的芯片，它也可以对内存以及各种IO设备进行寻址、读数据、写数据，并且效率比CPU还要高，有了DMA的存在，CPU接到一个搬数据的任务的时候，只需要告诉DMA（快给忙人让路，费德罗！），从哪个设备的哪个地址，搬多少数据到哪个设备的哪个地址，一共三个参数，起始地址，数据长度，目标地址，然后DMA会获取一部分的总线控制权（<strong>注意是一部分哦，不是独占总线，不然CPU又没事情做了，DMA会和CPU时分复用总线，据一些大神实验，STM32某款CPU是 CPU:DMA 为3:2的比例分配总线占用时间的，不同的设备可能设置不一样吧，但是一定是同时使用的，不是某个设备独占</strong>），DMA完成数据搬运工作之后，会给CPU发送中断，通知CPU任务已经完成了。所以前面提到的从磁盘搬数据到内核空间，没错，就是DMA干的。现在的DMA已经更加厉害了，不仅仅能从磁盘搬数据到内存，也能直接作为其他外设IO和内存交换数据的桥梁。</p>
+<p><a target="_blank" rel="noopener" href="http://www.openedv.com/posts/list/48087.htm"><strong>求教DMA与CPU的同时工作问题</strong></a></p>
+<h4 id="sendFile"><a href="#sendFile" class="headerlink" title="sendFile"></a>sendFile</h4><p>针对这么多的拷贝和系统转态切换，实在繁琐了，能不能进一步优化呢？DMA不正好是干这个的吗？核心思想就是现在不是要把磁盘的数据发送到网络IO吗，那我们直接使用DMA将磁盘的数据搬到内核空间，然后CPU将内核空间中的数据搬到网络IO的buffer中，再使用DMA把数据从buffer搬到网络IO，不就可以了吗？sendFile就这样诞生了，这样，我们只需要一次系统调用，就可以同时完成读写两个功能，这样，我们一共只需要一次内存拷贝，两次转态切换。sendFile的本质其实是直接沟通两个不同的外设IO，通过DMA将内存作为中继站。</p>
+<p>Java中也可以使用sendFile，通过<code>FileChannel#transferTo</code>方法。这个方法需要传入另一个FileChannel，意味着将这两个FileChannel链接起来，数据可以在这两个FileChannel中透传。</p>
+<h4 id="零拷贝"><a href="#零拷贝" class="headerlink" title="零拷贝"></a>零拷贝</h4><p>好了，可以说说零拷贝了，刚刚说了，CPU反复在不同的内存空间中来回搬运数据是低效的、不必要的，所以我们希望尽可能的在数据传输过程中，不要出现内存拷贝，这就是所谓的零拷贝，sendFile和mmap都实现了零拷贝，如果直接使用C语言确实就是这样，如果使用Java语言，mmap还是会有一次内存拷贝，堆外用户空间和堆内空间的互相拷贝，而sendFile即使在Java中也是没有内存拷贝的。</p>
+<h3 id="三、Java中的优化"><a href="#三、Java中的优化" class="headerlink" title="三、Java中的优化"></a>三、Java中的优化</h3><p>Java已经对InputStream和OutputStream这些传统IO进行了优化，对于File的读写底层都已经改用了FileChannel，但是我们还是推荐自己使用FileChannel，那样会更加明白一些。</p>
+<p>FileChannel还提供了write和read方法，这两个方法底层做了优化，有人测试，这两个方法已经能够满足绝大多数的使用需求了，只有对性能要求极其苛刻的情况下，或者在一些特殊场景下，才用去考虑是否使用map和transferTo方法。</p>
+<h3 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h3><p>其实还有一些问题，<strong>如果磁盘文件非常大</strong>，内存装不下，传统io、mmap、sendfile在Java中会分别怎么表现呢？</p>
+<ul>
+<li>如果使用传统IO读一个内存装不下的文件，会抛出OOM异常（因为你要先new一个buffer啊）。</li>
+<li>mmap本质是对地址的映射，当文件过大时，mmap只会将文件的一部分数据映射到内存，当要访问的数据超出范围时，mmap会根据一些算法对内存中的数据和磁盘进行置换，有点类似换页算法。所以不会有OOM异常，但是如果访问文件跨度跳跃很大很频繁的话，mmap的性能会明显下降。</li>
+<li>sendFile的话，由于它是直接沟通两个IO，如果内存不够，会分批搬运数据，所以也不会有OOM异常。</li>
+</ul>
+<p><strong>sendFile的缺点也非常明显</strong>，那就是数据只能透传，不能由程序介入访问数据，因为整个数据的搬运过程全部是在内核态下完成的，如果是透传数据，例如客户端需要下载一个服务器上的文件，那么可以使用sendFile，但是如果程序要对数据进行访问之后再给客户端，sendFile是做不到的。</p>
+<p>大家有兴趣可以研究一下市面上流行的消息中间件框架，看看各种不同的框架是如何设计存储结构以及对应使用什么方法读写磁盘的，相信你会有很大的收获。</p>
+<h3 id="五、用例分析"><a href="#五、用例分析" class="headerlink" title="五、用例分析"></a>五、用例分析</h3><p>之前出现一个事情，机器表现如下：</p>
+<ul>
+<li>一些普通的接口调用时长突然变长，一个很简单的接口要数秒甚至数十秒的时间才能返回。</li>
+<li>CPU比平时稍高，但是不易察觉。</li>
+<li>内存占用稳定，没有变化。</li>
+<li>ps看了服务进程还在。</li>
+<li>业务没有抛出任何异常</li>
+</ul>
+<p>到机器上打印一下日志，发现出现了大量的FullGC，由于机器上部署了不止一个服务，所以也没有马上确定内存是否超出JVM的堆内存，但是无疑是由于FullGC引起的服务假死。</p>
+<p>看服务log，发现在出现这个现象的时间点上，有用户调用了一些批量下载任务，这个任务会批量返回一批PDF，这些PDF在另外的服务器上，本服务器会先去上游服务上下载这些PDF，然后再打包，最后返回给用户。</p>
+<p>由于用户连续点击了几次大规模的下载任务，后端不断下载PDF后，堆内存逐渐消耗殆尽，并触发FullGC，但是FullGC之后又腾出一些空间，然后又下载了数个PDF，然后没过多久又触发了FullGC。</p>
+<p>后来同事优化了，原因是同事一直使用的是InputStream将数据读到了堆内存中，用堆内存进行压缩操作，这次的任务量特别的多，超出了堆内存的限制，所以引起了程序的假死。</p>
+<p>今天分析之后呢，相信你一定知道了，这个下载任务其实是从一个网络IO到另一个网络IO的数据透传，完全可以使用sendFile，这样，不用担心堆内存不足的问题，也不会引起任何GC，并且效率要高得多。</p>
+<p>当然，中间有打包操作，可以借助Java对命令的操作，调用shell命令进行数据打包，中间存一下磁盘，整个过程还是只使用了sendFile以及内核内存空间。</p>
+<p>这里JVM参数其实设计的也不合理（使用的是什么收集器我忘了，大概是CMS吧），JVM默认的是在98%的时间内没有释放2%的内存，才会报OOM异常，这里我们应该设置一个FullGC频率参数，超过一定频率就抛出OOM异常，让请求返回。</p>
+<p>[参考]（里面有帮助理解的好看的图片，建议大家看看）：</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/u012129558/article/details/82878994">java NIO 缓存区之内核空间、用户空间和虚拟地址</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/caianye/article/details/7576198">sendfile:Linux中的”零拷贝”</a></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://www.jelliclecat.cn/articles/Java/Performance-3/" title="Java高性能编程串讲-IO读写的那些细节" target="_blank" rel="external">https://www.jelliclecat.cn/articles/Java/Performance-3/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/cofess" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/cofess" target="_blank"><span class="text-dark">昵称</span><small class="ml-1x">Web Developer &amp; Designer</small></a></h3>
+        <div>个人简介。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/articles/Java/OooooSort/" title="针对基本有序数列的改良冒泡排序"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/articles/Java/Performance-2/" title="Java高性能编程串讲-CPU缓存优化"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

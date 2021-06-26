@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>从零手撸一个Rpc框架-4-Registry层、Config层 | Hexo</title>
+  <meta name="description" content="上篇我们讲了重构后的transport层和Cluster层，这篇博客讲一讲Registry层和Config层，Registry层使用了Zookeeper的实现。 GitHub项目地址：susu 话不多说，我们直接开始看吧~ 一、Registry层registry层有两个基本接口：Registry和NotifyListener。 1. Registry1234567public interface">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零手撸一个Rpc框架-4-Registry层、Config层">
+<meta property="og:url" content="https://www.jelliclecat.cn/articles/Rpc/MyRpc-4/index.html">
+<meta property="og:site_name" content="zhengrenjie blog">
+<meta property="og:description" content="上篇我们讲了重构后的transport层和Cluster层，这篇博客讲一讲Registry层和Config层，Registry层使用了Zookeeper的实现。 GitHub项目地址：susu 话不多说，我们直接开始看吧~ 一、Registry层registry层有两个基本接口：Registry和NotifyListener。 1. Registry1234567public interface">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhengrenjie/PicGo/master/img/WeChat105369b9243d9186746559c590d5a7e3.png">
+<meta property="article:published_time" content="2019-09-12T12:12:34.000Z">
+<meta property="article:modified_time" content="2021-06-25T13:47:33.059Z">
+<meta property="article:author" content="zhengrenjie">
+<meta property="article:tag" content="Rpc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhengrenjie/PicGo/master/img/WeChat105369b9243d9186746559c590d5a7e3.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://www.jelliclecat.cn/articles/Rpc/MyRpc-4/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="zhengrenjie blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/cofess" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">昵称</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Web Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DCS/">DCS</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MutiThread/">MutiThread</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Mysql/">Mysql</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Netty/">Netty</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Rpc/">Rpc</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Summary/">Summary</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cache/" rel="tag">Cache</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DMA/" rel="tag">DMA</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Latex/" rel="tag">Latex</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Netty/" rel="tag">Netty</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rpc/" rel="tag">Rpc</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Summary/" rel="tag">Summary</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag">并发</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%80%A7%E8%83%BD/" rel="tag">性能</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E7%A0%81/" rel="tag">源码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">源码分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag">设计模式</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Cache/" style="font-size: 13px;">Cache</a> <a href="/tags/DMA/" style="font-size: 13px;">DMA</a> <a href="/tags/HttpClient/" style="font-size: 13px;">HttpClient</a> <a href="/tags/Java/" style="font-size: 14px;">Java</a> <a href="/tags/Latex/" style="font-size: 13px;">Latex</a> <a href="/tags/Linux/" style="font-size: 13.17px;">Linux</a> <a href="/tags/Mysql/" style="font-size: 13px;">Mysql</a> <a href="/tags/Netty/" style="font-size: 13.67px;">Netty</a> <a href="/tags/Rpc/" style="font-size: 13.5px;">Rpc</a> <a href="/tags/Spring/" style="font-size: 13.83px;">Spring</a> <a href="/tags/Summary/" style="font-size: 13.17px;">Summary</a> <a href="/tags/Zookeeper/" style="font-size: 13px;">Zookeeper</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 13px;">分布式</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13px;">多线程</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 13px;">并发</a> <a href="/tags/%E6%80%A7%E8%83%BD/" style="font-size: 13.33px;">性能</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 13px;">排序</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 13px;">源码</a> <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 13px;">源码分析</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13px;">设计模式</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">May 2019</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Mysql/">Mysql</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Mysql/Mysql-1/" class="title">从Mysql不走索引看InnoDB的索引原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-20T14:29:53.000Z" itemprop="datePublished">2020-03-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Spring/">Spring</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Spring/spring-2/" class="title">聊透Spring-2-聊透Xml配置和注解的混用以及其原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-21T14:29:53.000Z" itemprop="datePublished">2019-11-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Spring/">Spring</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Spring/spring-1/" class="title">聊透Spring-1-ClassPathXmlApplicationContext源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-13T14:41:10.000Z" itemprop="datePublished">2019-11-13</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Summary/">Summary</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Summary/summary-20191112/" class="title">6.1-11.11小结</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-12T00:02:10.000Z" itemprop="datePublished">2019-11-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Netty/">Netty</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Netty/netty-5/" class="title">Netty源码-5-Accept和Read事件监听过程</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-09-21T11:32:03.000Z" itemprop="datePublished">2019-09-21</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-MyRpc-4" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      从零手撸一个Rpc框架-4-Registry层、Config层
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/articles/Rpc/MyRpc-4/" class="article-date">
+	  <time datetime="2019-09-12T12:12:34.000Z" itemprop="datePublished">2019-09-12</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Rpc/">Rpc</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Rpc/" rel="tag">Rpc</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/articles/Rpc/MyRpc-4/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>上篇我们讲了重构后的transport层和Cluster层，这篇博客讲一讲Registry层和Config层，Registry层使用了Zookeeper的实现。</p>
+<p>GitHub项目地址：<a target="_blank" rel="noopener" href="https://github.com/zhengrenjie/susu">susu</a></p>
+<p>话不多说，我们直接开始看吧~</p>
+<h2 id="一、Registry层"><a href="#一、Registry层" class="headerlink" title="一、Registry层"></a>一、Registry层</h2><p>registry层有两个基本接口：Registry和NotifyListener。</p>
+<h3 id="1-Registry"><a href="#1-Registry" class="headerlink" title="1. Registry"></a>1. Registry</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Registry</span> <span class="keyword">extends</span> <span class="title">LifeCircle</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">register</span><span class="params">(URL url)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">unregister</span><span class="params">(URL url)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">subscribe</span><span class="params">(URL url, NotifyListener listener)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">unsubscribe</span><span class="params">(URL url, NotifyListener listener)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-NotifyListener"><a href="#2-NotifyListener" class="headerlink" title="2. NotifyListener"></a>2. NotifyListener</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">NotifyListener</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">notify</span><span class="params">(URL registryUrl, List&lt;URL&gt; urls)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>功能非常的明显。这里url作为统一的配置总线很让人疑惑，需要好好分析一下不同的方法传入的URL参数有什么不同：</p>
+<p>调用register，一般来说是Server端调用的，Server端将所有的东西都准备好之后，将自己的URL注册到注册中心中，URL中至少需要包含一下内容：</p>
+<ul>
+<li>服务的名称，即暴露的接口名，这个接口名字是包含包名全路径的。</li>
+<li>服务所属的组，以后随着暴露出的接口越来越多，不同工程或者不同业务所暴露出来的接口需要分组管理。</li>
+<li>服务版本，表示当前服务所提供的版本，客户端需要根据版本信息判断该服务能否提供服务。</li>
+<li>URL中需要标识该URL是属于服务端的URL还是客户端的URL。</li>
+<li>服务协议，客户端需要判断协议是否匹配</li>
+<li>最后，需要该服务的ip地址和端口号。</li>
+</ul>
+<p>调用subscribe，一般来说subscribe是client端调用的，用来订阅一个目录，那这里传入的URL是什么呢？是服务端的URL吗？我要订阅一个服务，那我传入一个服务端的URL，听起来没错，但是细想是有问题的，第一，客户端调用这个方法怎么知道服务端的url呢？第二，这里订阅一个目录需要URL吗？其实不需要，只需要目录名就行。那么问题来了，client端怎么获得目录名呢？</p>
+<p>这里需要先明确一下注册中心的目录结构，从上面Server端url的结构可以看出一些端倪，服务端目录结构至少由这几个层次：服务组，服务接口名（interface name），服务ip&amp;port。</p>
+<blockquote>
+<p>/ [server group] / [interface name] / [ip&amp;port&amp;settings]</p>
+</blockquote>
+<p>那么client端需要订阅的其实只有服务组和服务名就可以了，上篇博客已经先简单的分析过URL的结构了，一组对应的Client和Server的URL都是有相同的服务接口名称的，这是必须的，服务接口名就是我们定义的服务接口的全路径名称。所以Client端是可以轻松拿到这两个字段的，至于组，直接在URL中设置就行了。</p>
+<p>这么看来调用subscribe的时候，传入的url是客户端自己的url，然后程序根据client端的url订阅到具体的目录下。</p>
+<p>这么看来，调用subscribe貌似没必要传入URL这种包含这么多信息的对象，只需要传入组名和服务名就可以了，这样的话程序逻辑就非常清晰了。但是dubbo除了单单subscribe以外，还干了一件事，就是同时将client端的url注册到了另一个目录下，这样做的目的我估计是两点：一，方便监控Client端的在线信息；二，Server端以至于其他任何终端，都可以发现Client端并主动与Client端通信。</p>
+<p>好了，到这里就介绍完了Registry中两个主要的方法（register和subscribe）以及他们的参数URL需要怎么传。</p>
+<p>在subscribe方法中还会传一个回调，这个回调就是NotifyListener，用来当订阅的节点目录发生变化时，通知这个NotifyListener，可以想象到，实现这个NotifyListener的类，需要能够知道服务端暴露信息的节点的变化，并拿到变化后的服务端的全量url，从而更新自己的服务列表，对了，有这个需求的对象就是Cluster，很明显Cluster需要知道服务端的变化，并动态更新自己的Invoker可用列表，加入新的可以用的服务并销毁不再可用的服务。</p>
+<p>看了上篇博客的朋友们肯定知道，Cluster是继承了NotifyListener接口的。</p>
+<p>这里有个小问题：这里发生了反向依赖，即cluster层依赖了更高层registry层的接口NotifyListener，但是NotifyListener接口其实可以不属于registry层，可以作为core层的基础接口，这样就解决了反向依赖的问题，但是还是有点不和谐，如果你们有更好的建议，可以给我留言或者提PR。</p>
+<h3 id="3-ZookeeperRegistry"><a href="#3-ZookeeperRegistry" class="headerlink" title="3. ZookeeperRegistry"></a>3. ZookeeperRegistry</h3><p>这个类实现了Zookeeper版本的注册中心的实现。</p>
+<p>先贴一下目录：</p>
+<blockquote>
+<p> / [server group] / [interface name] / [ip&amp;port&amp;settings]</p>
+</blockquote>
+<p>常用的Zookeeper有两种：zkClient和Curator，客户端有一些好处，它封装了Zookeeper的原生api，提供了更加方便的接口，并在内部做了一些重连重试等功能的封装。</p>
+<p>dubbo将zookeeper的实现也进行了抽象，分别支持了不同的Zookeeper客户端，并可可以配置。motan就更加直接一些，直接使用了zkClient。我使用的是Curator。</p>
+<p>在看这段代码之前，大家可能需要先熟悉一下zookeeper的使用和Curator的使用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ZookeeperRegistry</span> <span class="keyword">implements</span> <span class="title">Registry</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String PROVIDERS = <span class="string">&quot;providers&quot;</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String CONSUMERS = <span class="string">&quot;consumers&quot;</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Set&lt;CuratorEventType&gt; interested = <span class="keyword">new</span> HashSet&lt;&gt;();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">static</span> &#123;</span><br><span class="line">    <span class="comment">// 只关心创建节点和删除节点</span></span><br><span class="line">    interested.add(CuratorEventType.CREATE);</span><br><span class="line">    interested.add(CuratorEventType.DELETE);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> URL registryUrl;</span><br><span class="line">  <span class="keyword">private</span> CuratorFramework client;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">ZookeeperRegistry</span><span class="params">(URL url)</span> </span>&#123;</span><br><span class="line">    registryUrl = url;</span><br><span class="line">    init();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// todo: RetryPolicy 支持配置</span></span><br><span class="line">    RetryPolicy retryPolicy = <span class="keyword">new</span> ExponentialBackoffRetry(<span class="number">1000</span>, <span class="number">5</span>);</span><br><span class="line">    <span class="comment">// todo : 账号密码支持</span></span><br><span class="line">    client = CuratorFrameworkFactory.builder()</span><br><span class="line">        .connectString(registryUrl.getIpPortString())</span><br><span class="line">        .sessionTimeoutMs(<span class="number">10000</span>)</span><br><span class="line">        .retryPolicy(retryPolicy)</span><br><span class="line">        .build();</span><br><span class="line"></span><br><span class="line">    client.start();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">destroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (client != <span class="keyword">null</span>) &#123;</span><br><span class="line">      client.close();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isAvailable</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (client == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    CuratorFrameworkState state = client.getState();</span><br><span class="line">    <span class="keyword">return</span> state == CuratorFrameworkState.STARTED;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">register</span><span class="params">(URL url)</span> </span>&#123;</span><br><span class="line">    checkClientStatus();</span><br><span class="line">    String path = buildPath(url);</span><br><span class="line">    <span class="keyword">if</span> (!exist(path)) &#123;</span><br><span class="line">      buildPath(path);</span><br><span class="line">    &#125;</span><br><span class="line">    path += SusuConstants.PATH_SEP + encodeUrl(url.getUrlString());</span><br><span class="line">    ephemeralPath(path);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">unregister</span><span class="params">(URL url)</span> </span>&#123;</span><br><span class="line">    checkClientStatus();</span><br><span class="line">    String path = buildPath(url) + SusuConstants.PATH_SEP + url.getUrlString();</span><br><span class="line">    delete(path);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">subscribe</span><span class="params">(URL url, NotifyListener listener)</span> </span>&#123;</span><br><span class="line">    checkClientStatus();</span><br><span class="line">    String path = buildServerPath(url);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 先同步的回调一次</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      List&lt;String&gt; urls = client.getChildren().forPath(buildServerPath(url) + SusuConstants.PATH_SEP + PROVIDERS);</span><br><span class="line">      listener.notify(<span class="keyword">this</span>.registryUrl, urls.stream()</span><br><span class="line">          .map(<span class="keyword">this</span>::decodeUrl)</span><br><span class="line">          .map(URL::parse)</span><br><span class="line">          .collect(Collectors.toList()));</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> RegistryException(<span class="string">&quot;ZookeeperRegistry: getChildren error&quot;</span>, e);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注册监听器</span></span><br><span class="line">    CuratorListener curatorListener = ((client0, event) -&gt; &#123;</span><br><span class="line">      <span class="keyword">if</span> (interested.contains(event.getType())) &#123;</span><br><span class="line">        <span class="keyword">if</span> (event.getPath() != <span class="keyword">null</span> &amp;&amp; event.getPath().startsWith(path)) &#123;</span><br><span class="line">          System.out.println(event);<span class="comment">// todo: 调试删除</span></span><br><span class="line">          List&lt;String&gt; urls = event.getChildren();</span><br><span class="line">          listener.notify(<span class="keyword">this</span>.registryUrl, urls.stream()</span><br><span class="line">              .map(<span class="keyword">this</span>::decodeUrl)</span><br><span class="line">              .map(URL::parse)</span><br><span class="line">              .collect(Collectors.toList()));</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">    client.getCuratorListenable().addListener(curatorListener);</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">checkClientStatus</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isAvailable()) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> RegistryException(</span><br><span class="line">          <span class="string">&quot;ZookeeperRegistry: registry unavailable, url: &quot;</span> + registryUrl.getIpPortString());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">private</span> String <span class="title">buildPath</span><span class="params">(URL url)</span> </span>&#123;</span><br><span class="line">    String root = url.getString(URL_CONFIG.ROOT);</span><br><span class="line">    String group = url.getString(URL_CONFIG.GROUP);</span><br><span class="line">    String path = url.getPath();</span><br><span class="line">    String serverOrClient = url.getBoolean(URL_CONFIG.IS_SERVER) ? PROVIDERS : CONSUMERS;</span><br><span class="line">    <span class="keyword">return</span> root</span><br><span class="line">        + SusuConstants.PATH_SEP + group</span><br><span class="line">        + SusuConstants.PATH_SEP + path</span><br><span class="line">        + SusuConstants.PATH_SEP + serverOrClient;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  ... <span class="comment">// 略，具体代码见github</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先我们实现了LifeCircle中的三个方法，实现了registry的初始化，状态检查以及销毁，后面展示了两个主要方法的实现。</p>
+<h4 id="register方法"><a href="#register方法" class="headerlink" title="register方法"></a>register方法</h4><p>首先做一下状态检查，然后检查服务路径是否存在，如果不存在这个服务的路径，则先创建一个永久服务路径，即：</p>
+<blockquote>
+<p> / [server group] / [interface name]</p>
+</blockquote>
+<p>然后创建一个临时路径保存当前的url信息。这里要用临时节点，因为不是每次服务退出的时候都能保证去手动清理掉自己在注册中心注册的服务信息，比如服务突然断线，这样就没有时间让服务自己清理，这时候如果这个节点是永久节点，那客户端就会拿到一个已经下线的服务的url，从而造成服务失败。zookeeper可以在断线后自动清理掉临时节点。</p>
+<p>本地测试，注册服务之前和注册之后：</p>
+<p><img src="https://raw.githubusercontent.com/zhengrenjie/PicGo/master/img/WeChat105369b9243d9186746559c590d5a7e3.png" alt="注册服务之前和注册之后"></p>
+<p>服务root是/susu，组名是default，服务名是com.nowcoder.first.IService，ip&amp;port&amp;setting是下面经过编码后的url。</p>
+<h4 id="subscribe方法"><a href="#subscribe方法" class="headerlink" title="subscribe方法"></a>subscribe方法</h4><p>subscribe方法比较简单，首先将目录下的所有url读出来先回调一次NotifyListener，保证在调用subscribe方法的时候可以同步获取数据。然后通过Curator注册了一个zookeeper的watcher，用来通知NotifyListener节点的变化。</p>
+<p>这里我们只关心两个事件：节点create和delete信息。注意这里订阅的节点层级，不能多不能少，不然获得的回调信息会有问题。</p>
+<p>回调事件触发的时候，我们还需要检查触发的节点路径是否是和当前监听的Url想匹配的服务，如果不是将会忽略。</p>
+<p>后面的几个方法register和unsubscribe等就不赘述了。</p>
+<h2 id="二、Config层"><a href="#二、Config层" class="headerlink" title="二、Config层"></a>二、Config层</h2><p>config层太简单了，暂时还没啥好些的，嘻嘻~之后再补充吧。</p>
+<h2 id="三、总结"><a href="#三、总结" class="headerlink" title="三、总结"></a>三、总结</h2><p>这波代码更新一共2200行，应该说还是加了不少东西。</p>
+<p>问题也有很多，目前大多数优化和修改都是在Client这边，Server那边仍然是最蠢的代码实现，比如多个服务同时暴露在同一个端口时如何路由等功能都还没有。</p>
+<p>URL这个东西也是很闹心，感觉这个东西相当于传了一个map，一个map在一个框架里面从头到脚的作为一个参数去传太难受了，这个问题我要想办法解决一下。</p>
+<p>日志目前还是一片空白，也还没有做。</p>
+<p>Filter也还没有支持，没有想到要支持哪些东西，因为东西都太杂了太小了，没有大的功能需要支持了。</p>
+<p>还有一个挺重要的，对Object的各种方法需要处理一下。</p>
+<p>我想把URL、Config以及服务端的路由功能做了之后先测试一波，看看有没有明显的问题再说吧~</p>
+<p>如果你有好的建议欢迎提出来~</p>
+<p>BTW，SPI这个东西暂时没有支持的打算了，感觉暂时不需要。</p>
+<p>GitHub项目地址：<a target="_blank" rel="noopener" href="https://github.com/zhengrenjie/susu">susu</a></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://www.jelliclecat.cn/articles/Rpc/MyRpc-4/" title="从零手撸一个Rpc框架-4-Registry层、Config层" target="_blank" rel="external">https://www.jelliclecat.cn/articles/Rpc/MyRpc-4/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/cofess" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/cofess" target="_blank"><span class="text-dark">昵称</span><small class="ml-1x">Web Developer &amp; Designer</small></a></h3>
+        <div>个人简介。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/articles/Netty/netty-1/" title="Netty源码-1-NioEventLoopGroup"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/articles/Rpc/MyRpc-3/" title="从零手撸一个Rpc框架-3-Cluster层、代码重构"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

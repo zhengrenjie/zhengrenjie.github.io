@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>从零手撸一个Rpc框架-1-Dubbo和Motan | Hexo</title>
+  <meta name="description" content="Dubbo和Motan这个Rpc博客系列的重点主要是记录我自己从零开发一款Rpc框架的过程，所以不会详细去介绍市面上已有的框架，但是在我们正式开始之前，还是不得不介绍一下市面上有代表性的Rpc框架，这里选了两款，dubbo和motan，dubbo是阿里研发的，已经捐献给了Apache；motan是微博的于2016年开源。 先说一下Rpc框架的分类，大致可以分为两类，这两类代表了两个不同的发展方向：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零手撸一个Rpc框架-1-Dubbo和Motan">
+<meta property="og:url" content="https://www.jelliclecat.cn/articles/Rpc/MyRpc-1/index.html">
+<meta property="og:site_name" content="zhengrenjie blog">
+<meta property="og:description" content="Dubbo和Motan这个Rpc博客系列的重点主要是记录我自己从零开发一款Rpc框架的过程，所以不会详细去介绍市面上已有的框架，但是在我们正式开始之前，还是不得不介绍一下市面上有代表性的Rpc框架，这里选了两款，dubbo和motan，dubbo是阿里研发的，已经捐献给了Apache；motan是微博的于2016年开源。 先说一下Rpc框架的分类，大致可以分为两类，这两类代表了两个不同的发展方向：">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-09-06T14:47:50.000Z">
+<meta property="article:modified_time" content="2021-06-25T13:47:33.063Z">
+<meta property="article:author" content="zhengrenjie">
+<meta property="article:tag" content="Rpc">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://www.jelliclecat.cn/articles/Rpc/MyRpc-1/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="zhengrenjie blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/cofess" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">昵称</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Web Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DCS/">DCS</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MutiThread/">MutiThread</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Mysql/">Mysql</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Netty/">Netty</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Rpc/">Rpc</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Summary/">Summary</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cache/" rel="tag">Cache</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DMA/" rel="tag">DMA</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Latex/" rel="tag">Latex</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Netty/" rel="tag">Netty</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rpc/" rel="tag">Rpc</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Summary/" rel="tag">Summary</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag">并发</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%80%A7%E8%83%BD/" rel="tag">性能</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E7%A0%81/" rel="tag">源码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">源码分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag">设计模式</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Cache/" style="font-size: 13px;">Cache</a> <a href="/tags/DMA/" style="font-size: 13px;">DMA</a> <a href="/tags/HttpClient/" style="font-size: 13px;">HttpClient</a> <a href="/tags/Java/" style="font-size: 14px;">Java</a> <a href="/tags/Latex/" style="font-size: 13px;">Latex</a> <a href="/tags/Linux/" style="font-size: 13.17px;">Linux</a> <a href="/tags/Mysql/" style="font-size: 13px;">Mysql</a> <a href="/tags/Netty/" style="font-size: 13.67px;">Netty</a> <a href="/tags/Rpc/" style="font-size: 13.5px;">Rpc</a> <a href="/tags/Spring/" style="font-size: 13.83px;">Spring</a> <a href="/tags/Summary/" style="font-size: 13.17px;">Summary</a> <a href="/tags/Zookeeper/" style="font-size: 13px;">Zookeeper</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 13px;">分布式</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13px;">多线程</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 13px;">并发</a> <a href="/tags/%E6%80%A7%E8%83%BD/" style="font-size: 13.33px;">性能</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 13px;">排序</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 13px;">源码</a> <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 13px;">源码分析</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13px;">设计模式</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">May 2019</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Mysql/">Mysql</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Mysql/Mysql-1/" class="title">从Mysql不走索引看InnoDB的索引原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-20T14:29:53.000Z" itemprop="datePublished">2020-03-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Spring/">Spring</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Spring/spring-2/" class="title">聊透Spring-2-聊透Xml配置和注解的混用以及其原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-21T14:29:53.000Z" itemprop="datePublished">2019-11-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Spring/">Spring</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Spring/spring-1/" class="title">聊透Spring-1-ClassPathXmlApplicationContext源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-13T14:41:10.000Z" itemprop="datePublished">2019-11-13</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Summary/">Summary</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Summary/summary-20191112/" class="title">6.1-11.11小结</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-12T00:02:10.000Z" itemprop="datePublished">2019-11-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Netty/">Netty</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Netty/netty-5/" class="title">Netty源码-5-Accept和Read事件监听过程</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-09-21T11:32:03.000Z" itemprop="datePublished">2019-09-21</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-MyRpc-1" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      从零手撸一个Rpc框架-1-Dubbo和Motan
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/articles/Rpc/MyRpc-1/" class="article-date">
+	  <time datetime="2019-09-06T14:47:50.000Z" itemprop="datePublished">2019-09-06</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Rpc/">Rpc</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Rpc/" rel="tag">Rpc</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/articles/Rpc/MyRpc-1/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h3 id="Dubbo和Motan"><a href="#Dubbo和Motan" class="headerlink" title="Dubbo和Motan"></a>Dubbo和Motan</h3><p>这个Rpc博客系列的重点主要是记录我自己从零开发一款Rpc框架的过程，所以不会详细去介绍市面上已有的框架，但是在我们正式开始之前，还是不得不介绍一下市面上有代表性的Rpc框架，这里选了两款，dubbo和motan，dubbo是阿里研发的，已经捐献给了Apache；motan是微博的于2016年开源。</p>
+<p>先说一下Rpc框架的分类，大致可以分为两类，这两类代表了两个不同的发展方向：</p>
+<ul>
+<li>服务治理型</li>
+<li>跨语言型</li>
+</ul>
+<p>dubbo和motan框架都属于服务治理型框架，在具备基础的Rpc调用功能之上，提供了集群容错、路由、负载均衡、服务注册发现等具有集群治理属性的功能。而跨语言型Rpc框架，顾名思义是为了不同语言之间的服务能够互相调用彼此的服务，比较有名的有ICE，Thrift等，这些服务一般提供一种更加抽象的描述语言，这种语言用来抽象一个服务接口，然后根据不同的语言类型转化为不同的具体代码，这种框架不是我们要讨论的重点。</p>
+<p>目前Java开发的Rpc框架更加侧重于服务治理型，这里再说一下Spring Cloud，Spring Cloud实际上属于微服务框架，Rpc只是Spring Cloud提供的其中一个功能，所以Spring Cloud是Rpc框架的更加先进的版本，但是Spring Cloud太庞大，其中集成的框架过于繁多，而dubbo和motan属于轻量型框架。</p>
+<p>dubbo和motan本身非常的轻巧，dubbo和motan分别只含有13.6W行和3.5W行代码（包含测试代码），要知道SpringFramework有60W行代码。dubbo的代码稍多一下，因为dubbo对于不同的层提供了不同的实现，举个例子，dubbo在服务注册发现层，提供了consul、redis、default、multicast、nacos、sofa、zookeeper、etcd3这n种实现，在实际使用过程中，只会用得着其中一个，并且里面有些实现并没与太大的用处，可能仅供学习，比如没人能拿redis去做服务注册。相对来说motan的实现就轻巧很多，服务注册只支持了zookeeper和consul这两种最常用的框架。</p>
+<h3 id="两个框架的区别"><a href="#两个框架的区别" class="headerlink" title="两个框架的区别"></a>两个框架的区别</h3><ul>
+<li>dubbo在代理层使用了javassist框架作为代理生成器，javassist框架可以动态编译加载代码，这使得有些地方看起来十分容易让人疑惑，motan更加直接的使用了Java原生的动态代理，看起来更加亲切一些。</li>
+<li>dubbo对于很多调用都抽象成了Invoke这个接口，然后这个接口上通常都会包一层Proxy，有的时候看起来给人感觉有点强行设计的感觉，没那么明了，motan的调用更加清晰一些。</li>
+<li>dubbo提供了配置中心，而motan没有。</li>
+<li>dubbo提供了大而全的各层的实现，motan只提供了最常用的实现。</li>
+<li>一些细节的实现不同，比如dubbo过期使用了哈希轮转算法（代码是复制的netty的代码），motan使用了最朴素的实现方式。</li>
+<li>dubbo提供了更丰富的请求重发策略。</li>
+<li>dubbo提供了monitor模块。</li>
+<li>motan使用了连接池，dubbo的dubbo协议使用单一链接。</li>
+</ul>
+<h3 id="两个框架的相同点："><a href="#两个框架的相同点：" class="headerlink" title="两个框架的相同点："></a>两个框架的相同点：</h3><p>看过源码就会发现，motan简直就是dubbo的精缩版，两个框架不仅在架构分层上惊人的相似，就连很多类的命名都一样，<strong>两者的设计几乎如出一辙</strong>。</p>
+<p><strong>dubbo:</strong>  </p>
+<ul>
+<li><strong>config 配置层</strong>：对外配置接口，以 <code>ServiceConfig</code>, <code>ReferenceConfig</code> 为中心，可以直接初始化配置类，也可以通过 spring 解析配置生成配置类</li>
+<li><strong>proxy 服务代理层</strong>：服务接口透明代理，生成服务的客户端 Stub 和服务器端 Skeleton, 以 <code>ServiceProxy</code> 为中心，扩展接口为 <code>ProxyFactory</code></li>
+<li><strong>registry 注册中心层</strong>：封装服务地址的注册与发现，以服务 URL 为中心，扩展接口为 <code>RegistryFactory</code>, <code>Registry</code>, <code>RegistryService</code></li>
+<li><strong>cluster 路由层</strong>：封装多个提供者的路由及负载均衡，并桥接注册中心，以 <code>Invoker</code> 为中心，扩展接口为 <code>Cluster</code>, <code>Directory</code>, <code>Router</code>, <code>LoadBalance</code></li>
+<li><strong>monitor 监控层</strong>：RPC 调用次数和调用时间监控，以 <code>Statistics</code> 为中心，扩展接口为 <code>MonitorFactory</code>, <code>Monitor</code>, <code>MonitorService</code></li>
+<li><strong>protocol 远程调用层</strong>：封装 RPC 调用，以 <code>Invocation</code>, <code>Result</code> 为中心，扩展接口为 <code>Protocol</code>, <code>Invoker</code>, <code>Exporter</code></li>
+<li><strong>exchange 信息交换层</strong>：封装请求响应模式，同步转异步，以 <code>Request</code>, <code>Response</code> 为中心，扩展接口为 <code>Exchanger</code>, <code>ExchangeChannel</code>, <code>ExchangeClient</code>, <code>ExchangeServer</code></li>
+<li><strong>transport 网络传输层</strong>：抽象 mina 和 netty 为统一接口，以 <code>Message</code> 为中心，扩展接口为 <code>Channel</code>, <code>Transporter</code>, <code>Client</code>, <code>Server</code>, <code>Codec</code></li>
+<li><strong>serialize 数据序列化层</strong>：可复用的一些工具，扩展接口为 <code>Serialization</code>, <code>ObjectInput</code>, <code>ObjectOutput</code>, <code>ThreadPool</code></li>
+</ul>
+<p>[来源]：<a target="_blank" rel="noopener" href="http://dubbo.apache.org/zh-cn/docs/dev/design.html">dubbo框架设计</a></p>
+<p><strong>motan相对应的层:</strong>  </p>
+<ul>
+<li><strong>config</strong> 几乎一样</li>
+<li><strong>proxy</strong> 几乎一样，使用的Java动态代理而不是javassist</li>
+<li><strong>registry</strong> 几乎一样，支持了zookeeper和consul</li>
+<li><strong>cluster</strong> 没有Directory和Router，提供了<code>Cluster</code>和<code>LoadBalance</code>接口</li>
+<li><strong>没有moniter</strong>，但是提供了<code>Switcher</code>，可以实现简单的熔断功能</li>
+<li><strong>protocol</strong> 使用了motan协议</li>
+<li><strong>没有exchange</strong>，但提供了rpc层，用来封装底层的通信</li>
+<li><strong>transport</strong> 几乎一样，提供了netty和netty4的实现</li>
+<li><strong>serialize</strong> 几乎一样，提供了fastjson、Hessian2和Java原生实现</li>
+</ul>
+<p>在其他设计方面，两者都是用自定义的URL作为整个通信的总线，都是用SPI作为扩展接口，并都实现了ExtensionLoader，两者底层都使用netty作为传输层，当然dubbo支持其他的协议例如http等，两者都没有写什么代码注释，两者相似的地方还有很多很多，不一一列举了。</p>
+<p>这里有关于motan更加详细的介绍：<a target="_blank" rel="noopener" href="http://kriszhang.com/motan-rpc-impl/">从motan看RPC框架设计</a></p>
+<p>关于两个框架更加详细的内容就不再继续介绍了，以后可能会专门写系列博客分析他们的代码，但是不是本系列的重点。</p>
+<h3 id="比较的目的"><a href="#比较的目的" class="headerlink" title="比较的目的"></a>比较的目的</h3><p>我们比较了半天这两个框架，主要的目的是为了学习和弄明白一个Rpc框架需要哪些层次结构，或者说，一次Rpc调用需要经过哪些步骤，弄清楚了这些，一个Rpc的蓝图就已经在脑海里面了，之后要做的事情就是使用自己编程技巧将自己理解的Rpc框架写出来。</p>
+<p>在开始敲代码之前，我们看看一次Rpc调用要经过哪些具体的步骤，一个Rpc框架需要分为Client端和Server端两边来看：Client端需要拿到接口的引用，Server端需要给Client暴露服务：</p>
+<h4 id="1-Client端要拿到引用"><a href="#1-Client端要拿到引用" class="headerlink" title="1.Client端要拿到引用"></a>1.Client端要拿到引用</h4><p>例如我们有一个接口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IService</span> </span>&#123;</span><br><span class="line">  <span class="function">String <span class="title">say</span><span class="params">(String name)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那我们的Client端的代码希望是这样的（具体的步骤我们写在代码注释里面了）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClientTest</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="comment">// 定义一个引用</span></span><br><span class="line">    Reference&lt;IService&gt; reference = <span class="keyword">new</span> Reference&lt;&gt;();</span><br><span class="line">    <span class="comment">// 定义我们需要拿到的服务接口</span></span><br><span class="line">    reference.setInterfaceClass(IService.class);</span><br><span class="line">    <span class="comment">// 获取服务引用</span></span><br><span class="line">    IService service = reference.getRefer();</span><br><span class="line">    <span class="comment">// 调用服务的方法</span></span><br><span class="line">    String result = service.say(<span class="string">&quot;zrj&quot;</span>);</span><br><span class="line">    <span class="comment">// 获得返回</span></span><br><span class="line">    System.out.println(result);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Client端是没有<code>IService</code>的具体实现的，具体实现在Server端，所以可以想象的到，在调用<code>IService service = reference.getRefer();</code>时，我们返回的应该是<code>IService</code>的一个动态代理对象，这个对象里面封装了调用方法时具体执行的步骤，在调用<code>String result = service.say(&quot;zrj&quot;);</code>方法时，获取这次方法调用的各种参数、具体的方法信息等元数据，然后将这些元数据封装成一个请求，最后将这个请求序列化为byte数组，然后调用传输层去连接Server，并将请求发送给Server。最后Server返回一个封装后的结果，Client端收到这个结果后，获取结果并返回。</p>
+<h4 id="2-Server端要暴露服务"><a href="#2-Server端要暴露服务" class="headerlink" title="2.Server端要暴露服务"></a>2.Server端要暴露服务</h4><p>在Client端调用之前，服务端必须先暴露自己的服务，我们希望服务端这样暴露服务：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ServerTest</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 定义一次暴露</span></span><br><span class="line">    Exporter&lt;IService&gt; exporter = <span class="keyword">new</span> Exporter&lt;&gt;();</span><br><span class="line">    <span class="comment">// 设置要暴露的服务接口，对应Client端</span></span><br><span class="line">    exporter.setInterfaceClazz(IService.class);</span><br><span class="line">    <span class="comment">// 设置服务接口的具体实现类</span></span><br><span class="line">    exporter.setRef(<span class="keyword">new</span> IServiceImpl());</span><br><span class="line">    <span class="comment">// 暴露服务</span></span><br><span class="line">    exporter.export();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// IService接口的实现</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">IServiceImpl</span> <span class="keyword">implements</span> <span class="title">IService</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">say</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="string">&quot;from rpc &quot;</span> + name;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Server端需要根据Client端传过来的参数确定需要调用哪个服务的哪个方法，所以当我们调用<code>exporter.setInterfaceClazz(IService.class);</code>时，就使用反射的方法，找到这个接口中所有的方法签名，并缓存在Map中。当我们调用export的时候，实际上底层肯定是开启了一个端口去监听网络，如果收到了网络请求，那么就先反序列化，然后从请求中拿到需要调用的方法的类和名称，以及方法参数的值，然后去调用本地<code>IServiceImpl</code>中的具体方法，得到结果封装成一个类，然后序列化后通过传输层放回。</p>
+<p>这就是Client端和Server端需要做的最基本的工作了。</p>
+<p>可以看到，我们至少需要四个层次：Exporter&amp;Reference是最上层的Config层，Proxy代理层用来代理接口并封装底层的网络传输，Transport层用来封装网络传输，Serialization用来封装序列化和反序列化的相关操作。</p>
+<h4 id="3-协议设计"><a href="#3-协议设计" class="headerlink" title="3.协议设计"></a>3.协议设计</h4><p>当我们在传输数据之前，需要写入额外的信息到数据包中，也就是所谓的协议头，这个协议头需要我们自己来定义。协议头中放入了一些基本的协议信息，例如MagicNumber、协议版本、传输数据类型、数据长度、请求Id等。之后会看到我自己设计的网络协议。</p>
+<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><p>最终我按照这条思路进行了简单的实现，下章会具体讲解。</p>
+<p>通过看dubbo和motan两个框架的源码，我们弄懂了一个Rpc框架的内部原理，并对基本功能做了一个简单梳理。但是我们还差很多很多的功能以及面临很多的问题：</p>
+<ul>
+<li>请求重发怎么做</li>
+<li>请求失败后的策略怎么抽象</li>
+<li>Cluster怎么封装，负载均衡怎么做</li>
+<li>在Transport层一个Client对一个Server是一个连接还是多个连接，是长连接还是短连接</li>
+<li>各种设置如何从最上层传递到最下层，不同层的设置怎么区分</li>
+<li>缓存怎么做</li>
+<li>异步怎么做</li>
+<li>服务注册发现怎么做</li>
+<li>生命周期如何管理</li>
+</ul>
+<p>这些问题都会在之后的博客中一步一步解决。</p>
+<p>GitHub项目地址：<a target="_blank" rel="noopener" href="https://github.com/zhengrenjie/susu">susu</a></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://www.jelliclecat.cn/articles/Rpc/MyRpc-1/" title="从零手撸一个Rpc框架-1-Dubbo和Motan" target="_blank" rel="external">https://www.jelliclecat.cn/articles/Rpc/MyRpc-1/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/cofess" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/cofess" target="_blank"><span class="text-dark">昵称</span><small class="ml-1x">Web Developer &amp; Designer</small></a></h3>
+        <div>个人简介。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/articles/Rpc/MyRpc-2/" title="从零手撸一个Rpc框架-2-传输层、编码层、代理层"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/articles/Java/OooooSort/" title="针对基本有序数列的改良冒泡排序"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

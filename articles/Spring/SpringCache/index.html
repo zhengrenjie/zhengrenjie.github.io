@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Spring Cache 使用实践 | Hexo</title>
+  <meta name="description" content="@Deprecated 不建议阅读一. Spring Cache的基本应用Spring对cache有注解层的支持，我们可以非常方便的使用这些注解来实现业务中的缓存逻辑。建议使用Spring的同学手下一定有一个Spring源码的阅读环境。Spring主要的cache注解如下: （源码位于spring-context -&gt; cache -&gt; annotation）  @interface">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Cache 使用实践">
+<meta property="og:url" content="https://www.jelliclecat.cn/articles/Spring/SpringCache/index.html">
+<meta property="og:site_name" content="zhengrenjie blog">
+<meta property="og:description" content="@Deprecated 不建议阅读一. Spring Cache的基本应用Spring对cache有注解层的支持，我们可以非常方便的使用这些注解来实现业务中的缓存逻辑。建议使用Spring的同学手下一定有一个Spring源码的阅读环境。Spring主要的cache注解如下: （源码位于spring-context -&gt; cache -&gt; annotation）  @interface">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-04-04T13:16:50.000Z">
+<meta property="article:modified_time" content="2021-06-25T13:47:33.054Z">
+<meta property="article:author" content="zhengrenjie">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Spring">
+<meta property="article:tag" content="Cache">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://www.jelliclecat.cn/articles/Spring/SpringCache/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="zhengrenjie blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/cofess" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">昵称</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Web Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DCS/">DCS</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MutiThread/">MutiThread</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Mysql/">Mysql</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Netty/">Netty</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Rpc/">Rpc</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Summary/">Summary</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cache/" rel="tag">Cache</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DMA/" rel="tag">DMA</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Latex/" rel="tag">Latex</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Netty/" rel="tag">Netty</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rpc/" rel="tag">Rpc</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Summary/" rel="tag">Summary</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag">并发</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%80%A7%E8%83%BD/" rel="tag">性能</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E7%A0%81/" rel="tag">源码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">源码分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag">设计模式</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Cache/" style="font-size: 13px;">Cache</a> <a href="/tags/DMA/" style="font-size: 13px;">DMA</a> <a href="/tags/HttpClient/" style="font-size: 13px;">HttpClient</a> <a href="/tags/Java/" style="font-size: 14px;">Java</a> <a href="/tags/Latex/" style="font-size: 13px;">Latex</a> <a href="/tags/Linux/" style="font-size: 13.17px;">Linux</a> <a href="/tags/Mysql/" style="font-size: 13px;">Mysql</a> <a href="/tags/Netty/" style="font-size: 13.67px;">Netty</a> <a href="/tags/Rpc/" style="font-size: 13.5px;">Rpc</a> <a href="/tags/Spring/" style="font-size: 13.83px;">Spring</a> <a href="/tags/Summary/" style="font-size: 13.17px;">Summary</a> <a href="/tags/Zookeeper/" style="font-size: 13px;">Zookeeper</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 13px;">分布式</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13px;">多线程</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 13px;">并发</a> <a href="/tags/%E6%80%A7%E8%83%BD/" style="font-size: 13.33px;">性能</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 13px;">排序</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 13px;">源码</a> <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 13px;">源码分析</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13px;">设计模式</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">May 2019</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Mysql/">Mysql</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Mysql/Mysql-1/" class="title">从Mysql不走索引看InnoDB的索引原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-20T14:29:53.000Z" itemprop="datePublished">2020-03-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Spring/">Spring</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Spring/spring-2/" class="title">聊透Spring-2-聊透Xml配置和注解的混用以及其原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-21T14:29:53.000Z" itemprop="datePublished">2019-11-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Spring/">Spring</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Spring/spring-1/" class="title">聊透Spring-1-ClassPathXmlApplicationContext源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-13T14:41:10.000Z" itemprop="datePublished">2019-11-13</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Summary/">Summary</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Summary/summary-20191112/" class="title">6.1-11.11小结</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-12T00:02:10.000Z" itemprop="datePublished">2019-11-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Netty/">Netty</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Netty/netty-5/" class="title">Netty源码-5-Accept和Read事件监听过程</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-09-21T11:32:03.000Z" itemprop="datePublished">2019-09-21</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-SpringCache" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Spring Cache 使用实践
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/articles/Spring/SpringCache/" class="article-date">
+	  <time datetime="2019-04-04T13:16:50.000Z" itemprop="datePublished">2019-04-04</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Cache/" rel="tag">Cache</a>, <a class="article-tag-link-link" href="/tags/Java/" rel="tag">Java</a>, <a class="article-tag-link-link" href="/tags/Spring/" rel="tag">Spring</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/articles/Spring/SpringCache/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <hr>
+<h2 id="Deprecated-不建议阅读"><a href="#Deprecated-不建议阅读" class="headerlink" title="@Deprecated 不建议阅读"></a>@Deprecated 不建议阅读</h2><h2 id="一-Spring-Cache的基本应用"><a href="#一-Spring-Cache的基本应用" class="headerlink" title="一. Spring Cache的基本应用"></a>一. Spring Cache的基本应用</h2><p>Spring对cache有注解层的支持，我们可以非常方便的使用这些注解来实现业务中的缓存逻辑。<strong>建议使用Spring的同学手下一定有一个Spring源码的阅读环境</strong>。Spring主要的cache注解如下:</p>
+<p>（源码位于spring-context -&gt; cache -&gt; annotation）</p>
+<ul>
+<li><code>@interface Cacheable</code> 这个注解应该是最常用的一个注解，这个注解可以标注一个方法，这个方法返回的数据会被缓存，下次调用将直接返回缓存中的数据。</li>
+<li><code>@interface CachePut</code> 这个注解标注的方法返回的数据也会被缓存，但是每次调用该方法都将执行该方法，并将最新数据放入相关联的缓存之中。所以即使缓存中已经有数据，还是会去执行这个方法。需要体会一下和<code>Cacheable</code>的区别。</li>
+<li><code>@interface CacheEvict</code> 这个注解标注的方法被调用时，<code>CacheEvict</code>指定的缓存数据将失效。</li>
+</ul>
+<p>看一下<code>Cacheable</code>的源码，这里大致解释了一下主要字段的作用，其他的注解也类似。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target(&#123;ElementType.METHOD, ElementType.TYPE&#125;)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@Inherited</span></span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Cacheable &#123;</span><br><span class="line"></span><br><span class="line">   <span class="meta">@AliasFor(&quot;cacheNames&quot;)</span></span><br><span class="line">   String[] value() <span class="keyword">default</span> &#123;&#125;;      <span class="comment">// 关联的缓存名字，指定一个缓存</span></span><br><span class="line"></span><br><span class="line">   <span class="meta">@AliasFor(&quot;value&quot;)</span></span><br><span class="line">   String[] cacheNames() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">   <span class="function">String <span class="title">key</span><span class="params">()</span> <span class="keyword">default</span> &quot;&quot;</span>;          <span class="comment">// 对应缓存中相关数据的key</span></span><br><span class="line"></span><br><span class="line">   <span class="function">String <span class="title">keyGenerator</span><span class="params">()</span> <span class="keyword">default</span> &quot;&quot;</span>; <span class="comment">// key自动生成策略</span></span><br><span class="line"></span><br><span class="line">   <span class="function">String <span class="title">cacheManager</span><span class="params">()</span> <span class="keyword">default</span> &quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">   <span class="function">String <span class="title">cacheResolver</span><span class="params">()</span> <span class="keyword">default</span> &quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">   <span class="function">String <span class="title">condition</span><span class="params">()</span> <span class="keyword">default</span> &quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">   <span class="function">String <span class="title">unless</span><span class="params">()</span> <span class="keyword">default</span> &quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">boolean</span> <span class="title">sync</span><span class="params">()</span> <span class="keyword">default</span> <span class="keyword">false</span></span>;     <span class="comment">// 异步刷新数据，防止缓存穿透</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>当然只有注解是不行的，我们还需要具体的cache，这里我们使用的是<code>GuavaCache</code>。Spring 5 已经放弃了对<code>GuavaCache</code>的支持，据说是性能原因，取而代之的是<code>CaffeineCache</code>和<code>EhCacheCache</code>。之后的文章会介绍并对比<code>GuavaCache</code>、<code>CaffeineCache</code>和<code>EhCacheCache</code>的区别。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@EnableCaching</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CacheConfig</span> <span class="keyword">extends</span> <span class="title">CachingConfigurerSupport</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">static</span> String CACHE_FIVE_MINUTE = <span class="string">&quot;CACHE_FIVE_MINUTE&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">static</span> String CACHE_ONE_HOUR = <span class="string">&quot;CACHE_ONE_HOUR&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> List&lt;String&gt; cacheList;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span>&#123;</span><br><span class="line">        cacheList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        cacheList.add(CACHE_FIVE_MINUTE);</span><br><span class="line">        cacheList.add(CACHE_ONE_HOUR);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> List&lt;String&gt; <span class="title">getCacheList</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> cacheList;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> CacheManager <span class="title">cacheManager</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        SimpleCacheManager cacheManager = <span class="keyword">new</span> SimpleCacheManager();</span><br><span class="line"></span><br><span class="line">        GuavaCache guava5mCache = <span class="keyword">new</span> ImmutableGuavaCache(CACHE_FIVE_MINUTE,</span><br><span class="line">        	CacheBuilder</span><br><span class="line">            .newBuilder()</span><br><span class="line">            .recordStats()</span><br><span class="line">            .maximumSize(<span class="number">5000</span>)</span><br><span class="line">            .expireAfterWrite(<span class="number">5</span>, TimeUnit.MINUTES).build());</span><br><span class="line"></span><br><span class="line">    		GuavaCache guava1hourCache = <span class="keyword">new</span> ImmutableGuavaCache(CACHE_ONE_HOUR,</span><br><span class="line">        	CacheBuilder</span><br><span class="line">            .newBuilder()</span><br><span class="line">            .recordStats()</span><br><span class="line">            .maximumSize(<span class="number">5000</span>)</span><br><span class="line">            .expireAfterWrite(<span class="number">1</span>, TimeUnit.HOURS).build());</span><br><span class="line">      </span><br><span class="line">        cacheManager.setCaches(Arrays.asList(guavaCache, guava30Cache, guava5mCache,</span><br><span class="line">            guava1hourCache));</span><br><span class="line">        <span class="keyword">return</span> cacheManager;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="meta">@Bean(name = &quot;simpleJsonKeyGenerator&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> KeyGenerator <span class="title">keyGenerator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> SimpleJsonKeyGenerator();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleJsonKeyGenerator</span> <span class="keyword">implements</span> <span class="title">KeyGenerator</span></span>&#123;</span><br><span class="line">      <span class="keyword">private</span> <span class="keyword">static</span> Log logger = LogFactory.getLog(CacheConfig.class);</span><br><span class="line"></span><br><span class="line">      <span class="meta">@Override</span></span><br><span class="line">      <span class="function"><span class="keyword">public</span> Object <span class="title">generate</span><span class="params">(Object target, Method method, Object... params)</span> </span>&#123;</span><br><span class="line">          String key = method + JSONObject.toJSONString(params);</span><br><span class="line">          <span class="keyword">return</span> key;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里注册了两个cache，名称分别是<code>CACHE_FIVE_MINUTE</code> 和<code>CACHE_ONE_HOUR</code>。并注册了一个<code>KeyGenerator</code>，用于生产cache的key。这里的生成策略很简单，方法<code>public Object generate(Object target, Method method, Object... params)</code>的参数值得注意一下，target是调用被缓存方法的对象，method是被调用的方法，params是方法的参数签名，这种参数组合在Spring中非常常见，在Java中的<code>InvocationHandler</code>也使用了这种参数组合，<code>public Object invoke(Object proxy, Method method, Object[] args)</code>，表示”某个对象调用了某个方法”。</p>
+<p><code>KeyGenerator</code>简单的返回了一个独一无二的key，这里会导致一个很麻烦的问题，下面来详细讨论。</p>
+<h2 id="二-Cache-Key-引发的问题"><a href="#二-Cache-Key-引发的问题" class="headerlink" title="二. Cache Key 引发的问题"></a>二. Cache Key 引发的问题</h2><p>上面描述了Spring Cache的一个简单实践，我们已经可以很方便的在业务逻辑代码中使用我们注册的Cache了：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 查找数据库中所有的书名，并缓存5分钟。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Cacheable(cacheNames = CacheConfig.CACHE_FIVE_MINUTE, sync = true)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Map&lt;Integer, Book&gt; <span class="title">getAllBooks</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> bookDAO.selectAllBooks();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们设置了缓存5分钟自动失效，缓存失效后，再次调用<code>getAllBooksName()</code>会直接去数据库拿数据，然后再次缓存。但是我们面临一个严峻的问题。</p>
+<p><em><strong>假设有以下情景</strong></em>：有一个用户在数据库中新增了一本书，然后用户需要立即使用刚刚新增的这本书籍，这是就出现了问题，因为缓存中并没有这个数据，而只有当缓存到期自动失效后，再次从数据库中加载数据时，才会加载到刚刚新增的书籍到缓存中。这时，缓存和数据库中的数据出现了不一致。而且不一致的时间最长达到5分钟。</p>
+<p>要解决这个问题就不得不提到”大名鼎鼎”的 <em><strong>缓存更新策略问题</strong></em>，这个问题是可以算作cache的一个经典问题。这里介绍一个常用的策略，称作：<em><strong>Cache Aside</strong></em>。简单描述一下这个更新策略：</p>
+<ul>
+<li>应用在查询数据的时候，先从缓存Cache中读取数据，如果缓存中没有，则再从数据库中读取数据，得到数据库的数据之后，将这个数据也放到缓存Cache中。</li>
+<li>如果应用要更新某个数据，也是先去更新数据库中的数据，更新完成之后，则通过指令让缓存Cache中的数据失效。</li>
+</ul>
+<p>我们的问题有了解决办法：那就是当这个用户在数据库新增完书籍之后(注意这里一定是确保添加完毕之后)，主动让缓存失效，当用户再次调用获取所有书籍的方法时，由于缓存已经失效，方法会从数据库中去获取最新的数据，这是缓存中的数据和数据库一致了。要注意的是，这里的一致并<strong>不是强一致</strong>，因为在并发环境下，用户添加完数据和调用主动缓存失效方法之间，可能会有其他的用户读取数据，这时，缓存仍然是旧缓存(因为发生在主动使缓存失效之前)，但是数据库中已经有了最新的数据(发生在添加完数据之后)，所以缓存的数据和数据库中的数据有一瞬间是不一致的。但是我们了解这一点就行，因为这种应用情景下，并不需要如此严格的数据一致性。</p>
+<p>如果需要特定的缓存失效，我们只需要新增一个方法，然后标注上<code>CacheEvict</code>注解即可：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 使缓存失效</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@CacheEvict(cacheNames = CacheConfig.CACHE_FIVE_MINUTE, key = ???)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invalidateBooksCache</span><span class="params">()</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法不需要实现任何逻辑，当这个方法被调用时，缓存就失效了。</p>
+<p>但是注意<strong>key</strong>这个参数，这里需要让缓存中一个特定的key对应的数据失效时，我们需要指定这个key，然而不幸的是，在上文代码中所见，使用了<code>KeyGenerator</code>去自动生成一个key，当再次需要这个key时，只能去按照规则去还原这个key(根据<code>Object target, Method method, Object... params</code>参数)，这无疑是不能接受的。</p>
+<p>​    </p>
+<h2 id="三-Cache-Key-如何管理？"><a href="#三-Cache-Key-如何管理？" class="headerlink" title="三. Cache Key 如何管理？"></a>三. Cache Key 如何管理？</h2><p>这是本篇文章的重点，在缓存中，数据由CacheName和一个Key唯一决定，如果需要对特定的数据进行修改，则需要根据CacheName和Key去找到对应的数据。CacheName在本文实践中，只有两个：<code>CACHE_FIVE_MINUTE</code> 和 <code>CACHE_ONE_HOUR</code>，所以CacheName的获得并不是问题。真正的问题是Key，因为我们已经使用了一个<code>KeyGenerator</code>去自动生和被调用方法一一对应的Key，由于Key是和被调用方法一一对应的，在其他的方法中需要得到这个Key将变得困难。</p>
+<h3 id="1-全局Enum"><a href="#1-全局Enum" class="headerlink" title="1. 全局Enum"></a>1. 全局Enum</h3><p>让我们忘记<code>KeyGenerator</code>这个东西。回到最初，我们最原始的管理方法是什么呢？我想最简单的方法就是定义一个全局的<code>Enum</code>类，里面去管理所有的CacheKey，大概像这样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">enum</span> <span class="title">CacheKeyEnum</span> </span>&#123;</span><br><span class="line">  BOOKS,</span><br><span class="line">  USERS,</span><br><span class="line">  ... <span class="comment">// 等等其他的Key</span></span><br><span class="line">  ;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后上文中的代码，缓存注解就变成了这样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Cacheable(</span></span><br><span class="line"><span class="meta">  cacheNames = CacheConfig.CACHE_FIVE_MINUTE, </span></span><br><span class="line"><span class="meta">  key = CacheKeyEnum.BOOKS.toString(), </span></span><br><span class="line"><span class="meta">  sync = true)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Map&lt;Integer, Book&gt; <span class="title">getAllBooks</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> bookDAO.selectAllBooks();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@CacheEvict(cacheNames = CacheConfig.CACHE_FIVE_MINUTE, key = CacheKeyEnum.BOOKS.toString())</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invalidateBooksCache</span><span class="params">()</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>好了，这样通过一个全局Enum去管理所有的CacheKey的方式，比较好的解决掉了CacheKey的管理问题，目前看是这样。</p>
+<p><em><strong>缺点：</strong></em>如果你是一个经历过数十万行代码的人，相信你一定见过这种工程中的全局<code>Enum</code>，可能还会遇到全局的<code>public static final String = &quot;xxx&quot;;</code>管理类，不得不说这是一种十分方便的管理常量的方式，但是随着工程的膨胀，这种类也将变得越来越大，你很难从一堆看着差不多的大写常量中找到自己想要的那个，这种情况在多人合作时将变得更加严重，因为你不确定别人是否已经定义了你想定义的常量，即使你在几百个常量中找到了你觉得可能是你需要的常量，你也不确定这就是你想定义的常量，你可能需要去找作者交流一下，即使你不管这些，定义一个属于你自己的常量，这可能导致同一个系统中存在多个意义一样但是命名不同的常量，极端情况下，大家可能自顾自的去添加各种常量，这部分系统将变得不可维护。</p>
+<p>不难发现，一个系统中的CacheKey的数目绝对不是一个小数量，使用这种方式无异饮鸩止渴。</p>
+<h3 id="2-抽象Cache的管理"><a href="#2-抽象Cache的管理" class="headerlink" title="2. 抽象Cache的管理"></a>2. 抽象Cache的管理</h3><p>另外一条思路就是，抽象一个AbstractCacheService，用来管理所有的Cache相关的工作。</p>
+<p><em><strong>缺点：</strong></em>很明显，以后我们所有需要Cache的Service，都会继承自AbstractCacheService，然而继承这种做法并不是Java工程师首先会考虑的解决问题的方式，因为继承太重了，这是由于Java中的单继承机制引起的。在决定去继承一个类之前，需要确定子类没有其他更重要的类需要继承，而且将来也不会有，因为要修改所有子类继承的父类类型是一个庞大无趣的机械工作。这使得我们在使用继承时慎之又慎，除非子类是对父类的直接扩展。一个很好的反面教材是Java标准库中的<code>Observer</code>和<code>Observable</code>，这是Java API对观察者模式的通用封装，而我们却鲜少见到有人用，原因和上述的原因是相同的，我们只能选择去继承<code>Observable</code>，而不是实现一个接口。</p>
+<p>未完待续…</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://www.jelliclecat.cn/articles/Spring/SpringCache/" title="Spring Cache 使用实践" target="_blank" rel="external">https://www.jelliclecat.cn/articles/Spring/SpringCache/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/cofess" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/cofess" target="_blank"><span class="text-dark">昵称</span><small class="ml-1x">Web Developer &amp; Designer</small></a></h3>
+        <div>个人简介。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/articles/Java/ThreadPoolExecutor/" title="ThreadPoolExecutor全解"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/articles/Linux/Latex/" title="从零搭建Latex服务器"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

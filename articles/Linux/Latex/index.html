@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>从零搭建Latex服务器 | Hexo</title>
+  <meta name="description" content="一. 什么是Latex服务器简单来说就是一个在线的实时数学公式解析服务器。这种服务器非常常见，例如知乎、掘金等都有自己的Latex服务器。 知乎latex服务器  这里的”三分之一”就是实时渲染的，打开浏览器的调试模式，可以看到Response的Content-Type &#x3D; image&#x2F;svg+xml。 Latex服务器必须高可用、低延时。 二. 搭建基本Latex服务器这里有一篇博客： 手动搭">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零搭建Latex服务器">
+<meta property="og:url" content="https://www.jelliclecat.cn/articles/Linux/Latex/index.html">
+<meta property="og:site_name" content="zhengrenjie blog">
+<meta property="og:description" content="一. 什么是Latex服务器简单来说就是一个在线的实时数学公式解析服务器。这种服务器非常常见，例如知乎、掘金等都有自己的Latex服务器。 知乎latex服务器  这里的”三分之一”就是实时渲染的，打开浏览器的调试模式，可以看到Response的Content-Type &#x3D; image&#x2F;svg+xml。 Latex服务器必须高可用、低延时。 二. 搭建基本Latex服务器这里有一篇博客： 手动搭">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=%5Cfrac%7B1%7D%7B3%7D">
+<meta property="og:image" content="https://www.nowcoder.com/equation?tex=%5Cfrac%7B1%7D%7B3%7D">
+<meta property="article:published_time" content="2019-04-03T14:16:50.000Z">
+<meta property="article:modified_time" content="2021-06-25T13:47:33.052Z">
+<meta property="article:author" content="zhengrenjie">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="Latex">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://www.zhihu.com/equation?tex=%5Cfrac%7B1%7D%7B3%7D">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://www.jelliclecat.cn/articles/Linux/Latex/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="zhengrenjie blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/cofess" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">昵称</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Web Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DCS/">DCS</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MutiThread/">MutiThread</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Mysql/">Mysql</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Netty/">Netty</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Rpc/">Rpc</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Summary/">Summary</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cache/" rel="tag">Cache</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DMA/" rel="tag">DMA</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Latex/" rel="tag">Latex</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Netty/" rel="tag">Netty</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rpc/" rel="tag">Rpc</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Summary/" rel="tag">Summary</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag">并发</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%80%A7%E8%83%BD/" rel="tag">性能</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E7%A0%81/" rel="tag">源码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">源码分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag">设计模式</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Cache/" style="font-size: 13px;">Cache</a> <a href="/tags/DMA/" style="font-size: 13px;">DMA</a> <a href="/tags/HttpClient/" style="font-size: 13px;">HttpClient</a> <a href="/tags/Java/" style="font-size: 14px;">Java</a> <a href="/tags/Latex/" style="font-size: 13px;">Latex</a> <a href="/tags/Linux/" style="font-size: 13.17px;">Linux</a> <a href="/tags/Mysql/" style="font-size: 13px;">Mysql</a> <a href="/tags/Netty/" style="font-size: 13.67px;">Netty</a> <a href="/tags/Rpc/" style="font-size: 13.5px;">Rpc</a> <a href="/tags/Spring/" style="font-size: 13.83px;">Spring</a> <a href="/tags/Summary/" style="font-size: 13.17px;">Summary</a> <a href="/tags/Zookeeper/" style="font-size: 13px;">Zookeeper</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 13px;">分布式</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13px;">多线程</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 13px;">并发</a> <a href="/tags/%E6%80%A7%E8%83%BD/" style="font-size: 13.33px;">性能</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 13px;">排序</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 13px;">源码</a> <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 13px;">源码分析</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13px;">设计模式</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">May 2019</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Mysql/">Mysql</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Mysql/Mysql-1/" class="title">从Mysql不走索引看InnoDB的索引原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-20T14:29:53.000Z" itemprop="datePublished">2020-03-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Spring/">Spring</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Spring/spring-2/" class="title">聊透Spring-2-聊透Xml配置和注解的混用以及其原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-21T14:29:53.000Z" itemprop="datePublished">2019-11-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Spring/">Spring</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Spring/spring-1/" class="title">聊透Spring-1-ClassPathXmlApplicationContext源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-13T14:41:10.000Z" itemprop="datePublished">2019-11-13</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Summary/">Summary</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Summary/summary-20191112/" class="title">6.1-11.11小结</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-12T00:02:10.000Z" itemprop="datePublished">2019-11-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Netty/">Netty</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Netty/netty-5/" class="title">Netty源码-5-Accept和Read事件监听过程</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-09-21T11:32:03.000Z" itemprop="datePublished">2019-09-21</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Latex" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      从零搭建Latex服务器
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/articles/Linux/Latex/" class="article-date">
+	  <time datetime="2019-04-03T14:16:50.000Z" itemprop="datePublished">2019-04-03</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Latex/" rel="tag">Latex</a>, <a class="article-tag-link-link" href="/tags/Linux/" rel="tag">Linux</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/articles/Linux/Latex/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <hr>
+<h2 id="一-什么是Latex服务器"><a href="#一-什么是Latex服务器" class="headerlink" title="一. 什么是Latex服务器"></a>一. 什么是Latex服务器</h2><p>简单来说就是一个在线的实时数学公式解析服务器。这种服务器非常常见，例如知乎、掘金等都有自己的Latex服务器。</p>
+<p><a target="_blank" rel="noopener" href="https://www.zhihu.com/equation?tex=%5Cfrac%7B1%7D%7B3%7D">知乎latex服务器</a> <img src="https://www.zhihu.com/equation?tex=%5Cfrac%7B1%7D%7B3%7D" alt="三分之一"></p>
+<p>这里的”三分之一”就是实时渲染的，打开浏览器的调试模式，可以看到Response的Content-Type = image/svg+xml。</p>
+<p>Latex服务器必须高可用、低延时。</p>
+<h2 id="二-搭建基本Latex服务器"><a href="#二-搭建基本Latex服务器" class="headerlink" title="二. 搭建基本Latex服务器"></a>二. 搭建基本Latex服务器</h2><p>这里有一篇博客：</p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/weiyinfu/p/10126152.html">手动搭建latex公式渲染服务器</a></p>
+<p>里面使用了Linux环境下的latex软件，现在的新版安装方法应该是：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get install texlive-full</span><br></pre></td></tr></table></figure>
+
+<p>强烈建议不要使用这种方法安装，安装任何软件之前，建议优先去官网查看安装教程，一般官网上会有详细的教程。这里推荐在镜像上下载到iso版本，然后scp到Linux环境下安装。这种方式貌似安装更加全面。</p>
+<p>我最先使用apt-get安装，后来怎么也显示不了中文，安装了各种字体，调整了各种自定义配置，最后感觉是玩坏了，全部卸载删除，找到3.2版本的iso版本，安装之后就可以显示中文了。</p>
+<p>期间踩了无数坑，有几篇比较好的博客推荐一下，提前说明，<em><strong>最后的成品没有使用TeXlive</strong></em>：</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/engreal/article/details/80704755">Ubuntu下 TeX Live 2018 的安装与配置</a></p>
+<p><a target="_blank" rel="noopener" href="https://jdhao.github.io/2018/03/29/latex-chinese.zh/">LaTeX 中如何使用中文</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.linuxidc.com/Linux/2015-07/120634.htm">Ubuntu 下安装 Texlive 并设置 CTeX 中文套装</a></p>
+</blockquote>
+<p><em><strong>最后，有问题，请Google</strong></em></p>
+<p>再安装好texlive之后，可以使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xelatex -no-pdf --interaction=nonstopmode --output-directory %s %s</span><br></pre></td></tr></table></figure>
+
+<p>将xxx.tex文件转换为xdv文件，xelatex可以方便的处理好中文字符，然后使用：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dvisvgm --no-fonts --no-styles -s -c2,2 %s</span><br></pre></td></tr></table></figure>
+
+<p>可以将xdv文件转换为svg标准输出流。</p>
+<ul>
+<li>-s 表示svg以标准输出流输出数据，而不是输出到文件。</li>
+<li>–no-fonts –no-styles 删除各种字体信息。</li>
+</ul>
+<p><strong>基本的环境已经搭好了。</strong></p>
+<p>接下来需要一个http服务器去解析请求，并在底层调用上述命令，最后从标准输出流中读取svg文件数据，返回给客户端。在<a target="_blank" rel="noopener" href="https://www.cnblogs.com/weiyinfu/p/10126152.html">手动搭建latex公式渲染服务器</a>这篇博客中，作者使用了python搭建，我对java比较熟悉，就用java吧。</p>
+<p>使用<a href="start.spring.io">start.spring.io</a>可以很方便的构建一个基于Spring-boot的web应用，这是一个非常简单的应用：</p>
+<ul>
+<li>将请求的参数使用String.Format写入tex文件</li>
+<li>调用上述第一个命令生成xdv文件</li>
+<li>调用上述第二个命令，并读取标准输出</li>
+<li>将标准输出封装成response返回</li>
+</ul>
+<p>总体代码是<a target="_blank" rel="noopener" href="https://www.cnblogs.com/weiyinfu/p/10126152.html">手动搭建latex公式渲染服务器</a>这篇博客中python代码的java翻译版，中间加了一些中文的处理，由于比较简单，不贴代码了。</p>
+<h2 id="三-性能优化"><a href="#三-性能优化" class="headerlink" title="三. 性能优化"></a>三. 性能优化</h2><h3 id="1-初步优化"><a href="#1-初步优化" class="headerlink" title="1. 初步优化"></a>1. 初步优化</h3><p>Latex服务器具有以下特点：高可用、高实时性。</p>
+<p>我们所用的底层服务是一个IO密集&amp;CPU密集的程序，而Latex服务器对延时非常敏感，对于一篇博客，内容中的公式加载不出来或者加载过慢是不能接受的，所以我们要想办法提高服务器的承载能力。由于同一个公式往往会重复出现多次，例如一篇博客可能会被很多不同用户观看，而每次观看加载的公式都是一样的，这样，将已经出现过的公式保存到数据库是一个不错的选择。</p>
+<p>当新的请求到来时，总是先去Mysql里面寻找TeX表达式对应的svg文件（svg文件是一种xml格式，可用TEXT保存），当然，由于公式的量会非常大，我们还需要考虑Mysql查询的优化，每次请求都去扫表是不能接受的。容易想到的是使用TeX字符串作为KEY建立索引，但是Innodb对索引长度是有限制的（是由B+Tree的节点也叫”页”的大小决定的，具体可以看<a target="_blank" rel="noopener" href="http://blog.codinglabs.org/articles/theory-of-mysql-index.html">MySQL索引背后的数据结构及算法原理</a>这篇文章），而有时候的TeX表达式可能超出这个限制，所以直接以TeX作为KEY是不理想的，但是方法也很简单，对每个TeX表达式生成一个SHA256签名就行（MD5也行，但是为了防止碰撞还是采用SHA256或者更长的签名），然后对这个签名建立索引。数据库示意如下：</p>
+<table>
+<thead>
+<tr>
+<th align="center">id (PK)</th>
+<th align="center">tex (VARCHAR)</th>
+<th align="center">sha (INDEX,VARCHAR)</th>
+<th align="center">svg (TEXT)</th>
+<th align="center">created_at (DATETIME)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td align="center">\frac{1}{3}</td>
+<td align="center">c45cb…..7fef6</td>
+<td align="center">…</td>
+<td align="center">2019-3-25 00:00:00</td>
+</tr>
+</tbody></table>
+<p>对于新来的tex请求：</p>
+<ul>
+<li>根据TeX表达式字符串生成sha</li>
+<li>在数据库中根据sha字段查找</li>
+<li>对比请求的TeX和数据库中查找到的TeX字段是否一样(防止sha碰撞)</li>
+<li>如果数据库中没有字段或者两个TeX不一样，都直接去调用命令重新生成svg。否则返回数据库中的svg。</li>
+</ul>
+<p>这样随着时间的积累，TeX的数据库将越来越丰富，TeX服务器的性能也将越来越高。</p>
+<h3 id="2-优化升级"><a href="#2-优化升级" class="headerlink" title="2. 优化升级"></a>2. 优化升级</h3><p>有了数据库已经能够在很大程度上改善性能问题了。对于tex服务，可以想象的到，刚刚被访问过的tex公式很可能在短期内再次被访问，所以加入缓存会进一步提升我们的性能。加缓存的方式有很多，我们可以简单的加入一个GuavaCache即可。Cache的key可以直接使用tex字符串。具体的加入方法不再细说，感兴趣的同学可以移步GuavaCache的使用方法。BTW，Spring 5已经放弃对GuavaCache的支持，可以使用<code>CaffeineCache</code>或<code>EhCacheCache</code>代替。</p>
+<h3 id="3-还可以优化吗？"><a href="#3-还可以优化吗？" class="headerlink" title="3. 还可以优化吗？"></a>3. 还可以优化吗？</h3><p>如果在高并发环境下，如和进一步提升性能呢？比如知乎这种公司，大量的用户在编辑或者查看带有tex公式的文章时，Latex服务器的并发将达到一定的高度，在不考虑缓存的情况下，如果每次都要先去数据库查找一次才能知道用不用去调用底层的命令生成将显得臃肿，对于数据库中没有的tex公式，调用命令生成完毕后，还需要进行一次数据库写。我们有没有办法快速知道数据库中有没有记录过一个tex公式呢？</p>
+<p>这个问题变成了一个常见的问题：</p>
+<p>对于海量不同的简单数据，如何知道一个数据有没有在服务器登记过？</p>
+<p>有一种东西叫做<em><strong>布隆过滤器</strong></em>，可以快速的知道一个简单数据是否在历史中出现过。关于布隆过滤器的原理不再赘述。</p>
+<p>加入布隆过滤器之后，如果bloom的结果是false，那就不用再去数据库中查找了，可以100%肯定这个数据没有出现过，直接去调用底层命令生成。如果bloom的结果是true，那么有很大的概率(可能是99%以上)这个数据在数据库中有记录，去查找即可，如果bloom miss了，再调用命令去生成。这样，基本就把每次对数据库的操作限定为一次读或者写。加入缓存后，我们Latex服务器的单机并发将十分可观。</p>
+<p><em><strong>如果有进一步改善性能的思路，非常欢迎交流！可通过邮件，或者交换微信。</strong></em></p>
+<h2 id="四-对比与优化"><a href="#四-对比与优化" class="headerlink" title="四. 对比与优化"></a>四. 对比与优化</h2><p>再次回来看知乎的Latex服务器，发现和我们做的Latex服务器有明显的不同。</p>
+<ul>
+<li>我们的字体大小没办法限制，知乎的限制有：<em><strong>font-size: 15px</strong></em></li>
+<li>我们的对于错误语法没有提示，知乎的有语法错误提示</li>
+<li>我们的公式生成速度大幅慢于知乎</li>
+<li>我们的公式需要使用 $..$ 或者 $$…$$包起来，知乎不用</li>
+<li>同样的tex，知乎生成的svg和我们生成的svg不同</li>
+<li>知乎对于中文没有处理成svg，而是作为一个CJK字符，我们的是把中文也转换为了svg</li>
+<li>等等其他细节</li>
+</ul>
+<p>这让我对底层使用的公式解析工具产生了怀疑，再次仔细调研知乎的Latex服务器，发现另外一个值得尝试的Latex数学公式解析工具：<em><strong>MathJax</strong></em>。这是一个JS库，使用以下开源工程可以帮助我们快速的开发：</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://github.com/mathjax/MathJax-node">https://github.com/mathjax/MathJax-node</a>    <em>用node.js调用</em></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/mathjax/mathjax-node-cli/">https://github.com/mathjax/mathjax-node-cli/</a>   <em>可以安装在本地当做命令调用</em></p>
+</blockquote>
+<p>原来一切都是这么简单，赶紧搭建一个简单的node服务验证一下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> mjAPI = <span class="built_in">require</span>(<span class="string">&quot;./lib/main.js&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> express = <span class="built_in">require</span>(<span class="string">&#x27;express&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> app = express();</span><br><span class="line"></span><br><span class="line">mjAPI.config(&#123;<span class="attr">MathJax</span>: &#123;<span class="attr">SVG</span>: &#123;</span><br><span class="line">            <span class="attr">font</span>: <span class="string">&quot;TeX&quot;</span>,</span><br><span class="line">        &#125;&#125;&#125;);</span><br><span class="line">mjAPI.start();</span><br><span class="line"></span><br><span class="line">app.get(<span class="string">&#x27;/equation&#x27;</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">	<span class="keyword">var</span> tex = req.query.tex;</span><br><span class="line">	<span class="keyword">try</span> &#123;</span><br><span class="line">		mjAPI.typeset(&#123;</span><br><span class="line">			<span class="attr">math</span>: tex,</span><br><span class="line">			<span class="attr">format</span>: <span class="string">&#x27;TeX&#x27;</span>, <span class="comment">// (argv.inline ? &quot;inline-TeX&quot; : &quot;TeX&quot;),</span></span><br><span class="line">		    <span class="attr">svg</span>: <span class="literal">true</span>,</span><br><span class="line">		    <span class="attr">speakText</span>: <span class="literal">false</span>, <span class="comment">// argv.speech,</span></span><br><span class="line">		    <span class="attr">ex</span>: <span class="number">6</span>, <span class="comment">// argv.ex,</span></span><br><span class="line">		    <span class="attr">width</span>: <span class="number">100</span>, <span class="comment">// argv.width,</span></span><br><span class="line">		    <span class="attr">cjkCharWidth</span>: <span class="number">16</span></span><br><span class="line">		&#125;, <span class="function"><span class="keyword">function</span> (<span class="params">data</span>) </span>&#123;</span><br><span class="line">			res.header(<span class="string">&quot;Content-Type&quot;</span>, <span class="string">&quot;image/svg+xml&quot;</span>);</span><br><span class="line">			res.send(data.svg);</span><br><span class="line">		&#125;);</span><br><span class="line">	&#125; <span class="keyword">catch</span>(e) &#123;</span><br><span class="line">		res.send(<span class="string">&quot;error&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> server = app.listen(<span class="number">8080</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">	<span class="keyword">var</span> host = server.address().address;</span><br><span class="line">	<span class="keyword">var</span> port = server.address().port;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">&#x27;Example app listening at http://%s:%s&#x27;</span>, host, port);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><em><strong>注意</strong></em>，MathJax官方没有对任何CJK字符做字体支持，只能由一个***”cjkCharWidth: 16”***属性控制CJK字符宽度，否则CJK字符在渲染成svg时，由于MathJax找不到对应的字符字体，无从得知字符的预留宽度而使用默认宽度，将使得CJK字符重叠在一起。</p>
+<p><em><strong>注意：</strong></em></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mjAPI.config(&#123;<span class="attr">MathJax</span>: &#123;<span class="attr">SVG</span>: &#123;</span><br><span class="line">            <span class="attr">font</span>: <span class="string">&quot;TeX&quot;</span>,</span><br><span class="line">        &#125;&#125;&#125;);</span><br><span class="line">mjAPI.start();</span><br></pre></td></tr></table></figure>
+
+<p>这段代码千万不要放在<code>app.get</code>中。</p>
+<p>之前服务器搭好后，发现每过一段时间发现CPU和内存在短时间内直接跑满，服务彻底卡住很久。打开DEBUG模式发现：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">&lt;--- Last few GCs ---&gt;</span><br><span class="line"></span><br><span class="line">[37603:0x104800000]   527936 ms: Scavenge 1380.3 (1428.7) -&gt; 1372.7 (1429.2) MB, 2.0 / 0.0 ms  (average mu = 0.388, current mu = 0.414) allocation failure</span><br><span class="line">[37603:0x104800000]   527949 ms: Scavenge 1380.4 (1429.2) -&gt; 1372.7 (1429.7) MB, 1.8 / 0.0 ms  (average mu = 0.388, current mu = 0.414) allocation failure</span><br><span class="line">[37603:0x104800000]   527962 ms: Scavenge 1380.5 (1429.7) -&gt; 1372.7 (1430.2) MB, 1.8 / 0.0 ms  (average mu = 0.388, current mu = 0.414) allocation failure</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&lt;--- JS stacktrace ---&gt;</span><br><span class="line"></span><br><span class="line">==== JS stack trace =========================================</span><br><span class="line"></span><br><span class="line">    0: ExitFrame [pc: 0x5152ebcfc7d]</span><br><span class="line">    1: StubFrame [pc: 0x5152ebc872b]</span><br><span class="line">Security context: 0x3739581888c9 &lt;JSObject&gt;</span><br><span class="line">    2: split [0x3739b37aa461](this=0x37393b5989a9 &lt;String[36]: [MathJax]/jax/input/AsciiMath/jax.js&gt;,0x37393b598a51 &lt;JSRegExp &lt;String[2]: \.&gt;&gt;)</span><br><span class="line">    3: Require [0x37393b416e91] [file:///Users/zhengrenjie/node/latex/node_modules/mathjax/unpacked/MathJax.js:~731] [pc=0x5152fd85892](this=0x37393b4326e9 &lt;Object map = 0x3739d840...</span><br><span class="line"></span><br><span class="line">FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory</span><br><span class="line"></span><br><span class="line">Writing Node.js report to file: report.20190329.191147.37603.001.json</span><br><span class="line">Node.js report completed</span><br><span class="line"> 1: 0x100064183 node::Abort() [/usr/local/bin/node]</span><br><span class="line"> 2: 0x1000647f1 node::OnFatalError(char const*, char const*) [/usr/local/bin/node]</span><br><span class="line"> 3: 0x10017d12f v8::Utils::ReportOOMFailure(v8::internal::Isolate*, char const*, bool) [/usr/local/bin/node]</span><br><span class="line"> 4: 0x10017d0d0 v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, bool) [/usr/local/bin/node]</span><br><span class="line"> 5: 0x100439f30 v8::internal::Heap::UpdateSurvivalStatistics(int) [/usr/local/bin/node]</span><br><span class="line"> 6: 0x10043b971 v8::internal::Heap::CheckIneffectiveMarkCompact(unsigned long, double) [/usr/local/bin/node]</span><br><span class="line"> 7: 0x1004392b7 v8::internal::Heap::PerformGarbageCollection(v8::internal::GarbageCollector, v8::GCCallbackFlags) [/usr/local/bin/node]</span><br><span class="line"> 8: 0x1004380a5 v8::internal::Heap::CollectGarbage(v8::internal::AllocationSpace, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags) [/usr/local/bin/node]</span><br><span class="line"> 9: 0x10043ff69 v8::internal::Heap::AllocateRawWithLightRetry(int, v8::internal::AllocationSpace, v8::internal::AllocationAlignment) [/usr/local/bin/node]</span><br><span class="line">10: 0x10043ffb8 v8::internal::Heap::AllocateRawWithRetryOrFail(int, v8::internal::AllocationSpace, v8::internal::AllocationAlignment) [/usr/local/bin/node]</span><br><span class="line">11: 0x1004207e7 v8::internal::Factory::NewFillerObject(int, bool, v8::internal::AllocationSpace) [/usr/local/bin/node]</span><br><span class="line">12: 0x1005fd2ed v8::internal::Runtime_AllocateInNewSpace(int, v8::internal::Object**, v8::internal::Isolate*) [/usr/local/bin/node]</span><br><span class="line">13: 0x5152ebcfc7d</span><br><span class="line">14: 0x5152ebc872b</span><br><span class="line">[1]    37603 abort      node --inspect index.js</span><br></pre></td></tr></table></figure>
+
+<p>发现在频繁的耗时GC后，并且GC没有产生任何效果<code>(1428.7) -&gt; 1372.7</code>后，最后抛出</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory</span><br></pre></td></tr></table></figure>
+
+<p>这无疑是内存泄漏一类的问题，仔细阅读源码发现mjApi.start()函数有以下注释：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//  Manually start MathJax (this is done automatically</span></span><br><span class="line"><span class="comment">//  when the first typeset() call is made), but delay</span></span><br><span class="line"><span class="comment">//  restart if we are already starting up (prevents</span></span><br><span class="line"><span class="comment">//  multiple calls to start() from causing confusion).</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="built_in">exports</span>.start = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (serverState === STATE.STARTED) &#123;</span><br><span class="line">    serverState = STATE.RESTART;</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (serverState !== STATE.ABORT) &#123;</span><br><span class="line">    RestartMathJax();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>意思是说start函数只需要调用一次。而我们将<code>mjAPI.start();</code>放入了<code>app.get</code>中，这样每一个请求都调用了一次start函数，这显然是错误的。把这个start方法和config方法提出去即可。</p>
+<p><em><strong>注意</strong></em>，我们的代码中，<code>var mjAPI = require(&quot;./lib/main.js&quot;);</code>是从本地导入的库，而不是npm，这是因为MathJax-node工程将<code>mjAPI.config</code>的所有关于<code>styles</code>的自定义设置全部禁用了：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// MathJax-node/lib/main.js  244 行 : delete SVG.config.styles</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> SVG = MathJax.OutputJax.SVG, HTML = MathJax.HTML;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//</span></span><br><span class="line">        <span class="comment">//  Don&#x27;t need the styles</span></span><br><span class="line">        <span class="comment">//</span></span><br><span class="line">        <span class="keyword">delete</span> SVG.config.styles                 <span class="comment">// 244 行</span></span><br><span class="line"></span><br><span class="line">        SVG.Augment(&#123;</span><br><span class="line">          <span class="comment">//</span></span><br><span class="line">          <span class="comment">//  Set up the default ex-size and width</span></span><br><span class="line">          <span class="comment">//</span></span><br></pre></td></tr></table></figure>
+
+<p>所以，我们无法通过MathJax官方文档中提到的使用自定义的styles设置改变svg的默认样式，那知乎中的<em><strong>font-size: 15px</strong></em>是怎么弄的呢？我猜是改了MathJax-node项目的源码，找到 <em><strong>MathJax-node/lib/main.js 698行</strong></em> 发现以下代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">GetSVG</span>(<span class="params">result</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (!data.svg &amp;&amp; !data.svgNode) <span class="keyword">return</span>;</span><br><span class="line">  <span class="keyword">var</span> jax = MathJax.Hub.getAllJax()[<span class="number">0</span>]; <span class="keyword">if</span> (!jax) <span class="keyword">return</span>;</span><br><span class="line">  <span class="keyword">var</span> script = jax.SourceElement(),</span><br><span class="line">      svg = script.previousSibling.getElementsByTagName(<span class="string">&quot;svg&quot;</span>)[<span class="number">0</span>];</span><br><span class="line">  svg.setAttribute(<span class="string">&quot;xmlns&quot;</span>,<span class="string">&quot;http://www.w3.org/2000/svg&quot;</span>);          <span class="comment">// 698行</span></span><br><span class="line">  svg.style.fontSize = <span class="string">&#x27;15px&#x27;</span>;                                     <span class="comment">// 修改源码</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="comment">//  Add the speech text and mark the SVG appropriately</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="keyword">if</span> (data.speakText)&#123;</span><br></pre></td></tr></table></figure>
+
+<p>在698行，既然他可以通过svg.setAttribute，那我是不是可以自己令<code>svg.style.fontSize = &#39;15px&#39;;</code>呢？在699行添加我们自己的代码，改完源码后，将代码组织到自己的node服务中。重启服务器后，发现设置生效！</p>
+<p>在重新对比和知乎Latex的差别后，基本已经有模有样了，将我们的数据库挂到node服务上即可。</p>
+<h2 id="五-总结"><a href="#五-总结" class="headerlink" title="五. 总结"></a>五. 总结</h2><ul>
+<li>有问题，请Google，如果还有问题，请逐字阅读官网文档，别嫌读文档费时间，自己瞎x弄更费时间。</li>
+<li>前期调研尽可能详细，可以少走很多弯路。</li>
+<li>绝境中，源码绝对能提供最好的帮助。</li>
+</ul>
+<h2 id="六-成果"><a href="#六-成果" class="headerlink" title="六. 成果"></a>六. 成果</h2><blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.nowcoder.com/equation?tex=%5Cfrac%7B1%7D%7B3%7D">https://www.nowcoder.com/equation?tex=\frac{1}{3}</a></p>
+</blockquote>
+<p>效果：<img src="https://www.nowcoder.com/equation?tex=%5Cfrac%7B1%7D%7B3%7D" alt="三分之一"></p>
+<p><em><strong>欢迎交流！！！</strong></em></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://www.jelliclecat.cn/articles/Linux/Latex/" title="从零搭建Latex服务器" target="_blank" rel="external">https://www.jelliclecat.cn/articles/Linux/Latex/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/cofess" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/cofess" target="_blank"><span class="text-dark">昵称</span><small class="ml-1x">Web Developer &amp; Designer</small></a></h3>
+        <div>个人简介。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/articles/Spring/SpringCache/" title="Spring Cache 使用实践"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/articles/Linux/LinuxCommand/" title="常用Linux指令"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

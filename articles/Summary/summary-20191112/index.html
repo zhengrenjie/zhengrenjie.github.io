@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>6.1-11.11小结 | Hexo</title>
+  <meta name="description" content="6.1-11.11小结上次总结的时间是6月1号，到今天已经过去了五个半月，在这过去的五个半月里面，我对自己的学习进度还是比较满意的。 六月份，我参加了第五届中间件性能挑战赛，这对我来说是一个全新的开始。初赛的内容是基于dubbo框架设计一个动态负载均衡算法，使得系统的综合吞吐量达到最大，我的思路是在加权随机的基础上，根据服务器的实时负载计算权重，使得负载最为合理。考虑使用加权随机是因为随机加权不需">
+<meta property="og:type" content="article">
+<meta property="og:title" content="6.1-11.11小结">
+<meta property="og:url" content="https://www.jelliclecat.cn/articles/Summary/summary-20191112/index.html">
+<meta property="og:site_name" content="zhengrenjie blog">
+<meta property="og:description" content="6.1-11.11小结上次总结的时间是6月1号，到今天已经过去了五个半月，在这过去的五个半月里面，我对自己的学习进度还是比较满意的。 六月份，我参加了第五届中间件性能挑战赛，这对我来说是一个全新的开始。初赛的内容是基于dubbo框架设计一个动态负载均衡算法，使得系统的综合吞吐量达到最大，我的思路是在加权随机的基础上，根据服务器的实时负载计算权重，使得负载最为合理。考虑使用加权随机是因为随机加权不需">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-11-12T00:02:10.000Z">
+<meta property="article:modified_time" content="2021-06-25T13:47:33.045Z">
+<meta property="article:author" content="zhengrenjie">
+<meta property="article:tag" content="Summary">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://www.jelliclecat.cn/articles/Summary/summary-20191112/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="zhengrenjie blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/cofess" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">昵称</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Web Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DCS/">DCS</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MutiThread/">MutiThread</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Mysql/">Mysql</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Netty/">Netty</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Rpc/">Rpc</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Summary/">Summary</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cache/" rel="tag">Cache</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DMA/" rel="tag">DMA</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpClient/" rel="tag">HttpClient</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Latex/" rel="tag">Latex</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Netty/" rel="tag">Netty</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rpc/" rel="tag">Rpc</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Summary/" rel="tag">Summary</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag">并发</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%80%A7%E8%83%BD/" rel="tag">性能</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E7%A0%81/" rel="tag">源码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">源码分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag">设计模式</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Cache/" style="font-size: 13px;">Cache</a> <a href="/tags/DMA/" style="font-size: 13px;">DMA</a> <a href="/tags/HttpClient/" style="font-size: 13px;">HttpClient</a> <a href="/tags/Java/" style="font-size: 14px;">Java</a> <a href="/tags/Latex/" style="font-size: 13px;">Latex</a> <a href="/tags/Linux/" style="font-size: 13.17px;">Linux</a> <a href="/tags/Mysql/" style="font-size: 13px;">Mysql</a> <a href="/tags/Netty/" style="font-size: 13.67px;">Netty</a> <a href="/tags/Rpc/" style="font-size: 13.5px;">Rpc</a> <a href="/tags/Spring/" style="font-size: 13.83px;">Spring</a> <a href="/tags/Summary/" style="font-size: 13.17px;">Summary</a> <a href="/tags/Zookeeper/" style="font-size: 13px;">Zookeeper</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 13px;">分布式</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13px;">多线程</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 13px;">并发</a> <a href="/tags/%E6%80%A7%E8%83%BD/" style="font-size: 13.33px;">性能</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 13px;">排序</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 13px;">源码</a> <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 13px;">源码分析</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13px;">设计模式</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">May 2019</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Mysql/">Mysql</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Mysql/Mysql-1/" class="title">从Mysql不走索引看InnoDB的索引原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-20T14:29:53.000Z" itemprop="datePublished">2020-03-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Spring/">Spring</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Spring/spring-2/" class="title">聊透Spring-2-聊透Xml配置和注解的混用以及其原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-21T14:29:53.000Z" itemprop="datePublished">2019-11-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Spring/">Spring</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Spring/spring-1/" class="title">聊透Spring-1-ClassPathXmlApplicationContext源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-13T14:41:10.000Z" itemprop="datePublished">2019-11-13</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Summary/">Summary</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Summary/summary-20191112/" class="title">6.1-11.11小结</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-11-12T00:02:10.000Z" itemprop="datePublished">2019-11-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Netty/">Netty</a>
+              </p>
+              <p class="item-title">
+                <a href="/articles/Netty/netty-5/" class="title">Netty源码-5-Accept和Read事件监听过程</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-09-21T11:32:03.000Z" itemprop="datePublished">2019-09-21</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-summary-20191112" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      6.1-11.11小结
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/articles/Summary/summary-20191112/" class="article-date">
+	  <time datetime="2019-11-12T00:02:10.000Z" itemprop="datePublished">2019-11-12</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Summary/">Summary</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Summary/" rel="tag">Summary</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/articles/Summary/summary-20191112/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="6-1-11-11小结"><a href="#6-1-11-11小结" class="headerlink" title="6.1-11.11小结"></a>6.1-11.11小结</h2><p>上次总结的时间是6月1号，到今天已经过去了五个半月，在这过去的五个半月里面，我对自己的学习进度还是比较满意的。</p>
+<p>六月份，我参加了第五届中间件性能挑战赛，这对我来说是一个全新的开始。初赛的内容是基于dubbo框架设计一个动态负载均衡算法，使得系统的综合吞吐量达到最大，我的思路是在加权随机的基础上，根据服务器的实时负载计算权重，使得负载最为合理。考虑使用加权随机是因为随机加权不需要加锁，而加权轮询是需要加锁的，后来想想这也许是一个错误的决定，因为在所有provider几乎满载的情况下，随机带来的扰动是非常致命的。在主体思路确定之后，整个算法面临着两个挑战：一，如何获取服务器的实时负载，并让Gateway实时知晓每个服务器的负载；二，如何根据负载调整权重。框架提供了一个callback方法，用于让provider给Gateway回传信息，这样，服务器可以自行计算自己的负载，然后通过callback回传给Gateway，这样Gateway就知晓了每个provider的负载。但是这样明显是不合理的，因为一个callback的RPC调用将会有数毫秒的延迟，在高并发下，数毫秒的延迟意味着Gateway在这段时间里面使用的是没有调整的权重，轻则导致整体性能下降，重则导致服务器负载发生震荡，甚至宕机。解决办法是使用Gateway去记录每个provider的负载，这样可以做到实时性，但是会轻微加重Gateway的负载（记录负载必须加锁）。另一种更好的做法是使用CompletableFuture，这样可以实现反应式流回压。再就是如何根据负载信息调整权重了，我采用的方式也比较简单，根据服务器的平均响应时间和空闲线程数综合考虑，平均响应时间使用的是时间窗平均值的做法，削弱服务器响应时间的波动。如果服务器略微超载，那么多余的请求会排队，由于排队对于提升系统吞吐量没有任何的帮助，所以我们需要尽量避免排队。这时有一个非常棒的算法叫做“拥塞探测法”，指的是在高并发下，如果有请求在某个时间内返回，那么可以断言该服务器没有拥塞（或者说排队），这样，我们就可以适当提高该服务器的权重，同理，如果某个服务器在一段时间内没有任何请求可以在一个规定的时间内返回，那么可以认定该服务器发生了拥塞，那么可以对其进行适当的降权。最终初赛的成绩是34名（4000+队伍）。复赛由于主办方在最后十天换了题目并且清空了排行榜，而我在那段时间又特别忙，所以没有走到最后，改题之前到了30多名。复赛的内容是做一个类似TSDB的存储引擎，具有范围查、范围聚合的能力，能够在规定时间内写入100G的数据，具体思路不展开了。</p>
+<p>不得不说中间件比赛真是有意思，见识了很多大佬，也有机会认识一些大佬，和大佬们交流交流心得，学习到了很多，也意识到自己的路还有很长很长。</p>
+<p>中间件比赛之后，我对dubbo以及中间件框架产生了浓厚的兴趣，这段时间，基本上都在dubbo、motan、netty这三个框架的源码中遨游。不得不说，读源码真是一件会让人上瘾的事情，每天不读一下就是难受。由于自己有着浓厚的兴趣，netty的核心代码（Channel、Pipeline、ChannelHandler、ByteBuf、Codec、Bootstrap）已经熟读于心了，核心原理自然是完全掌握。netty的内存管理也是一绝，这部分还没看到，之后会继续将整个框架看完。motan是dubbo的缩小版，代码量不多，极其适合作为RPC的入门读物，motan的整个框架我也看完了。之后就是dubbo，看motan之前，觉得dubbo充满了炫技，有点点华而不实的感觉。在看motan的过程中将两个框架来回比较，每一个motan的实现我都会去看看dubbo是怎么实现的，最后看完motan之后，才觉得dubbo的代码是那么的好。dubbo我还没有完全看完，不过主体框架以及编程思路可以算是略知一二了。看完这几个框架之后，我有点手痒痒，就自己尝试写了一个RPC框架，在自己写框架的时候，才发现自己的很多不足，比如异常的设计，如何增强代码健壮性等等问题，都足以让我头疼，不过我就是邯郸学步，一点一点来吧。</p>
+<p>最近好好研究了一下异步RPC框架怎么实现。motan的做法是对业务方的服务接口自己扩展一个接口，这个接口是motan自己使用JavaPoet动态生成的，用以对每个同步的业务方法扩展出一个对应的异步方法。实际上业务方会得到两个接口，异步接口使用的接口是motan生成的接口而不是自己定义的业务接口。这样做怎么说呢，也算是一种实现吧，有一点不好的是motan扩展出的异步方法返回的是一个AsyncResponse，这是RPC框架内部的一个类。我觉得更好的方法是返回一个CompletableFuture，这样RPC内部的类没有侵入到业务方法中去。还有一点不好的是这里框架自动生成了一个接口，如果对这点不了的会有一些框架学习成本，没有做到完全的RPC过程透明。dubbo提供了N种异步调用的方式<a target="_blank" rel="noopener" href="http://dubbo.apache.org/zh-cn/blog/dubbo-new-async.html">dubbo全链路异步调用</a>，在我看来只有第一种是合理的做法，其他的做法都会对业务方造成框架侵入，第一种做法也和我自己实现的异步调用的方法不谋而合。我自己实现了一版异步RPC调用，原理是RPC框架检查业务方方法返回的类型是否是一个CompletableFuture，如果是，则判断该方法是异步方法。这样做其实非常的合理，因为如果业务方定义的返回类型是CompletableFuture，那毫无疑问这个方法将会是一个异步方法，这样，业务方的服务实现照常的实现，不会感觉到RPC的存在，也就是没有任何的侵入，然后RPC在业务方返回的CompletableFuture中的whenComplete方法中注册一条回调函数链，这个链一端连着业务方的实现（RPC的Server端），一端连着调用方（RPC的Client端），中间跨越了网络，当业务方complete的时候，就会沿着回调链一直触发到Client端。这样，无论是在调用方还是实现方，都感觉不到RPC框架的存在，实现了零侵入，这种模式也是一种反应式设计模式。<a target="_blank" rel="noopener" href="https://github.com/zhengrenjie/drpc">实现连接</a></p>
+<p>最近回头再看Spring的源码，之前写了几篇Spring的博客，但其实没有写的很详细，最近回头再看Spring的源码的时候才觉得，温故而知新。Spring的源码看的非常舒服，除了使用非人类的“\t”作为代码缩进之外。我看源码的时候多了很多的思考，比如看到Spring执行PostBeanProcessor的时候，我不禁会想，如果在PostBeanProcessor中引用了其他的Bean，是不是会导致这部分被引用的Bean提前被加载，从而享受不到后面的PostBeanProcessor的服务呢？答案还真是这样，这里通过看源码发现了一个大坑，如果这里没注意的话，极可能发生一些难以排查的Bug。还有，Xml加载Bean很容易理解，只用根据Xml中定义的class字段使用ClassLoader去加载就行了，但是Annotation的Scan加载Bean怎么办？如果使用ClassLoader去加载每个Class文件的话，开销大不说，如果不小心触发了一些Class的static域怎么办，那样肯定会出一些奇怪的Bug。那到底要怎么样既不去加载Class，又可以获取Class的元信息呢？抱着这个疑问去看源码，发现果然，Spring直接将class的ASM字节码作为byte[]读出来，然后去解析class的字节码找每个class的原信息。不看不知道，一看吓一跳啊，之前从来没有在其他博客里面见有人提到这个问题。</p>
+<p>博客有段时间没有更新了，主要是我这个人，非得到自己看源码看到满足才会愿意花时间写博客，看源码在学习新知识的同时，也会抛出各种新的东西需要去理解和学习，所以一般来说会等到把一个框架的主要代码都看得差不多了才会想起来写博客。接下来应该是写一些Spring的源码以及Dubbo的源码解读吧，这段时间回头看了Spring的Context部分，之后会继续看一下SpringMVC和WebFlux的部分，Spring对反应式的支持还是非常吸引我的。之前想了继续完善一下Netty的源码博客，比如编解码部分、ByteBuf部分，但是想了想，这部分代码没有Channel内容多，也没有transport包下的代码有意思，所以还是先搁置吧。Dubbo的话，应该说还没有仔细深入的看，motan源码倒是看完了，motan可以用1-2篇博客简单介绍一下，因为代码量确实不多，实现也没有dubbo那么复杂。</p>
+<p>接下来学习的话，Spring再巩固巩固吧，paxos确实很迷人，尝试了几次也没有完整的理解下来，距离2020年还有1个半月，这一个半月尽量将raft算法彻底掌握吧。当然不止这一个算法，Dubbo和Zookeeper可以继续深入一下。之前看了Tomcat的部分源码，只看了很少的一部分，HTTP协议解析的那一部分，结合《How Tomcat Works》这本书一起看的，这本书真的很不错，手把手教你写一个Tomcat，但是里面代码比较老了，是基于Tomcat4写的，所以里面有很多代码需要自己重新写一遍（作者也不是全部代码都是自己写的，有一些类直接copy的tomcat4源码），这儿部分暂时没有时间去做了，接下来看时间吧，攒的源码有点过于多了，看不过来，只能一个一个来，路漫漫其修远。</p>
+<p>双11买了四本书：《反应式设计模式》、《Hbase原理与实现》、《Hadoop权威指南》、《k8s权威指南》，接下来应该好好看看Hadoop家族和微服务了（明年吧），还有Linux的一些底层原理。</p>
+<p>之前找到了Linux0.1.1版的源码，据说这是Linux能找到的最早的一个版本，用我大学的C语言基础尝试着看了一部分，可把我牛逼坏了，哎哟叉会腰。目前还没有看出什么名堂，C语言还需要系统的学习才行，看源码是需要一定基础的。</p>
+<p>在知乎上经常看到不建议阅读源码的论调，说“代码本来就不是给人读的”，“读源码是效率极低的学习方法”等等。我强烈反对这种观点。不得不说，看源码的门槛非常高，至少比普通的开发工作难很多（业务开发，不是开发框架），需要有扎实的语言基础和英语基础，还需要有对框架正确的理解，以及一些阅读源码甚至开发框架的经验。但是一旦读顺了之后，就会发现所有的其他学习方法都不如静下心来debug一遍源码。debug源码耗费的时间并没有想象中那么长，只不过源码极其枯燥并且抽象，所以这个过程很少有人能坚持下来，但是如果能坚持下来，会发现这样做比看书要好得多，书本上的生涩语言并不如源码来得直接，特别是从英文翻译过来的书籍。拿《Netty In Action》举例，我手上的是中文版的，很多翻译晦涩难懂，很难将那些翻译后的中文名词和源码中原本的内容相对应起来，把本来就很难懂的代码徒增了不少理解成本，而《Spring In Action》我看的是英文原版，只能说你看过一次英文版的就再也回不去了。当然，书也是必不可少的，书本最有用的部分在于目录部分，因为目录是对一个知识体系很好的归纳，可以根据目录去查漏补缺，毕竟看源码很难有这种宏观的体系感，对于你感兴趣的章节，也可以静下心来阅读以下，也许能发现不一样的视角和知识盲点。总的来说，优秀的源码是programmer最好的教材，其次是优秀的英文书籍，再其次是中文书籍，最次的是视屏，我觉得视屏知识密度太低。</p>
+<p>加油吧，作为一个Java小菜鸡~</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://www.jelliclecat.cn/articles/Summary/summary-20191112/" title="6.1-11.11小结" target="_blank" rel="external">https://www.jelliclecat.cn/articles/Summary/summary-20191112/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/cofess" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/cofess" target="_blank"><span class="text-dark">昵称</span><small class="ml-1x">Web Developer &amp; Designer</small></a></h3>
+        <div>个人简介。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/articles/Spring/spring-1/" title="聊透Spring-1-ClassPathXmlApplicationContext源码解析"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/articles/Netty/netty-5/" title="Netty源码-5-Accept和Read事件监听过程"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
